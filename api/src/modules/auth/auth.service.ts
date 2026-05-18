@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { authResponseDto } from './dto/authResponse.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { loginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -133,6 +134,33 @@ async logout(userId:string):Promise<void>{
            refreshToken:null,
         }
     })
+}
+
+//login
+async login(loginDto:loginDto):Promise<authResponseDto>{
+    const {email,password}=loginDto;
+    const user = await this.prismaService.user.findUnique({
+        where:{email},
+    });
+    if(!user){
+        throw new UnauthorizedException('User not found');
+    }
+    const isPasswordMatch = await bcrypt.compare(password,user.password);
+    if(!isPasswordMatch){
+        throw new UnauthorizedException('Invalid password');
+    }
+    const tokens = await this.generateTokens(user.id,user.email);
+    await this.updateRefreshToken(user.id,tokens.refreshToken);
+    return {
+        ...tokens,user:{
+            id:user.id,
+            email:user.email,
+            firstName:user.firstName,
+            lastName:user.lastName,
+            role:user.role,
+            
+        }
+    };
 }
 
 
