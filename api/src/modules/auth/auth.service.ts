@@ -1,4 +1,5 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { authResponseDto } from './dto/authResponse.dto';
@@ -46,13 +47,15 @@ const hashedPassword = await bcrypt.hash(password, 10);
             },
         });
         //Generate Access Token
-        const tokens = this.generateTokens(user.id,user.email);
-        //Generate Refresh Token
-        // const refreshToken = this.jwtService.sign({id:user.id,email:user.email});
-        // return {
-        //     message: 'User registered successfully',
-        //     data: user,
-        // };
+        const tokens = await this.generateTokens(user.id,user.email);
+        await this.updateRefreshToken(user.id,tokens.refreshToken);
+
+        return {
+            message: 'User registered successfully',
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            user
+        };
   }catch(error){
     throw new InternalServerErrorException('Failed to register user');
   }
@@ -74,17 +77,20 @@ const  [accessToken,refreshToken]=await Promise.all([
     this.jwtService.signAsync({id:userId,refreshId},{expiresIn:'7d'}),
 ]);
 
-await this.prismaService.session.create({
-    data:{
-        id:refreshId,
-        userId:userId,
-        
-    }
-})
-
+return {accessToken,refreshToken}
  
 }
 
-
+//update refresh token
+ async updateRefreshToken(userId:string,refreshToken:string){
+    await this.prismaService.user.update({
+        where:{
+            id:userId,
+        },
+        data:{
+           refreshToken:refreshToken,
+        }
+    })
+}
 
 }

@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from '../user/dto/create-user.dto';
 import { RegisterDto } from './dto/register.dto';
 import { authResponseDto } from './dto/authResponse.dto';
 
