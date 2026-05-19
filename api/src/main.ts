@@ -38,7 +38,7 @@ const config = new DocumentBuilder()
 .setTitle('Nest.js REST API')
 .setDescription('Nest.js REST API Documentation')
 .setVersion('1.0')
-.addTag('Nest.js REST API')
+// .addTag('Nest.js REST API')
 .addBearerAuth({
   type:'http',
   scheme:'bearer',
@@ -78,7 +78,7 @@ SwaggerModule.setup('api/v1/docs',app,document,{
     
   },
   customSiteTitle:'API Documentation',
-  customfavIcon:'https://swagger.io/favicon.ico',
+  customfavIcon:'https://swagger.io/favicon.icon',
   customCss: `
   .swagger-ui .topbar  { display : none }
   .swagger-ui .info {margin: 50px 0}
