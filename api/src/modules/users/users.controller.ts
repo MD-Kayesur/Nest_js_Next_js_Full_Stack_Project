@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -7,6 +7,8 @@ import { Role, User } from '@prisma/client';
 import { GetUser } from 'src/common/decorators/get-user.decorators';
 import { UserResponseDto } from './dto/uesr-response.dto';
 import type { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { Roles } from 'src/common/decorators/roles.decorators';
  
 
 @ApiTags('users')
@@ -92,21 +94,78 @@ async findOne(@Param('id') id: string):Promise<UserResponseDto[]>{
   type:UserResponseDto
 })
 @ApiResponse({status:401,description:'unauthorized',type:Error})
+@ApiResponse({status:409,description:'user already exists',type:Error})
 @HttpCode(HttpStatus.OK)
-async update(@Param('id') id: string,@Req() req:RequestWithUser):Promise<UserResponseDto>{
-    return await this.usersService.update(id,req.user.id,req.body);
+
+
+async updateProfile( userId: string,@Body() UpdateUserDto: UpdateUserDto , @Req() req:RequestWithUser):Promise<UserResponseDto>{
+    return await this.usersService.update(userId,UpdateUserDto);
+}
+
+//change currnt user password
+@Patch('me/password')
+@HttpCode(HttpStatus.OK)
+@ApiOperation({
+  summary:'change current user password',
+  description:'change current user password'
+})
+@ApiResponse({
+  status:200,
+  description:'user password changed',
+  type:UserResponseDto
+})
+@ApiResponse({status:401,description:'unauthorized',type:Error})
+ 
+@HttpCode(HttpStatus.OK)
+
+async changePassword( @GetUser('id') userId:string, @Body() changePasswordDto:ChangePasswordDto ):Promise<{message:string}>{
+    return await this.usersService.changePassword(userId,changePasswordDto);
+}
+}
+
+//Delete user (for admin purposes)
+@Delete("me")
+@HttpCode(HttpStatus.OK)
+@ApiOperation({
+  summary:'delete user',
+  description:'delete user'
+})
+@ApiResponse({
+  status:200,
+  description:'user deleted',
+  type:UserResponseDto
+})
+@ApiResponse({status:401,description:'unauthorized',type:Error})
+@ApiResponse({status:409,description:'user already exists',type:Error})
+@HttpCode(HttpStatus.OK)
+
+async deleteUser( @GetUser('id') userId:string, :Promise<{message:string}>{
+    return await this.usersService.remove(userId,);
+}
 
 
 
 
+//Delete user by id
+@Delete(':id')
+@Roles(Role.ADMIN)
+@HttpCode(HttpStatus.OK)
+@ApiOperation({
+  summary:'delete user',
+  description:'delete user'
+})
+@ApiResponse({
+  status:200,
+  description:'user deleted',
+  type:UserResponseDto
+})
+@ApiResponse({status:401,description:'unauthorized',type:Error})
+@ApiResponse({status:409,description:'user already exists',type:Error})
+@HttpCode(HttpStatus.OK)
 
-
-
-
-
-
-
-
+async deleteUser( @GetUser('id') userId:string, :Promise<{message:string}>{
+    return await this.usersService.remove(userId,);
+}
 
 
 
