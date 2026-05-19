@@ -7,33 +7,56 @@ This is a full-stack project with a NestJS backend and (planned) NextJS frontend
 ```text
 NestJS_Prisma_Tamplate/
 ├── api/                           # NestJS Backend Application
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── .prettierrc
+│   ├── README.md
+│   ├── eslint.config.mjs
+│   ├── nest-cli.json
+│   ├── package-lock.json
+│   ├── package.json               # Dependencies and scripts
 │   ├── prisma/                    # Prisma Database Schema & Migrations
-│   │   └── schema.prisma          # Database models (User, Product, Order, etc.)
+│   │   ├── migrations/
+│   │   │   ├── 20260517082052_init/
+│   │   │   │   └── migration.sql
+│   │   │   └── migration_lock.toml
+│   │   └── schema.prisma          # Database models
+│   ├── prisma.config.ts
 │   ├── src/                       # Source Code
+│   │   ├── app.controller.spec.ts
+│   │   ├── app.controller.ts      # Root controller
+│   │   ├── app.module.ts          # Main application module
+│   │   ├── app.service.ts         # Root service
 │   │   ├── common/                # Reusable common code
-│   │   │   ├── decorators/        # Custom decorators (e.g., @GetUser)
-│   │   │   └── guards/            # Global/custom guards (e.g., JwtAuthGuard)
+│   │   │   ├── decorators/
+│   │   │   │   └── get-user.decorators.ts
+│   │   │   └── guards/
+│   │   │       └── jwt-auth.guard.ts
+│   │   ├── main.ts                # Application entry point
 │   │   ├── modules/               # Feature Modules
-│   │   │   └── auth/              # Authentication Module (JWT, Refresh Tokens)
+│   │   │   └── auth/              # Authentication Module
+│   │   │       ├── auth.controller.spec.ts
+│   │   │       ├── auth.controller.ts
+│   │   │       ├── auth.module.ts
+│   │   │       ├── auth.service.spec.ts
+│   │   │       ├── auth.service.ts
 │   │   │       ├── dto/           # Data Transfer Objects
 │   │   │       │   ├── authResponse.dto.ts
 │   │   │       │   ├── login.dto.ts
 │   │   │       │   └── register.dto.ts
-│   │   │       ├── strategies/    # Passport strategies (JWT, Refresh)
-│   │   │       │   ├── jwt.strategy.ts
-│   │   │       │   └── refresh-token.strategy.ts
-│   │   │       ├── auth.controller.ts
-│   │   │       ├── auth.module.ts
-│   │   │       └── auth.service.ts
-│   │   ├── prisma/                # Prisma Global Module/Service
-│   │   │   ├── prisma.module.ts
-│   │   │   └── prisma.service.ts
-│   │   ├── app.controller.ts      # Root controller
-│   │   ├── app.module.ts          # Main application module
-│   │   ├── app.service.ts         # Root service
-│   │   └── main.ts                # Application entry point (Swagger, validation, CORS setup)
-│   ├── .env.example               # Example environment variables
-│   ├── package.json               # Dependencies and scripts
+│   │   │       ├── guards/
+│   │   │       │   └── refresh-token.guard.ts
+│   │   │       └── strategies/    # Passport strategies
+│   │   │           ├── jwt.strategy.ts
+│   │   │           └── refresh-token.strategy.ts
+│   │   └── prisma/                # Prisma Global Service
+│   │       ├── prisma.module.ts
+│   │       ├── prisma.service.spec.ts
+│   │       └── prisma.service.ts
+│   ├── test/
+│   │   ├── app.e2e-spec.ts
+│   │   └── jest-e2e.json
+│   ├── tsconfig.build.json
 │   └── tsconfig.json              # TypeScript configuration
 └── README.md                      # Project documentation
 ```
