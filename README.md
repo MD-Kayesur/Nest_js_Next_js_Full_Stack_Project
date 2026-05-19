@@ -40,26 +40,38 @@ NestJS_Prisma_Tamplate/
 │   │   ├── app.service.ts         # Root service
 │   │   ├── common/                # Reusable common code
 │   │   │   ├── decorators/
-│   │   │   │   └── get-user.decorators.ts
+│   │   │   │   ├── get-user.decorators.ts
+│   │   │   │   └── roles.decorators.ts
 │   │   │   └── guards/
-│   │   │       └── jwt-auth.guard.ts
+│   │   │       ├── jwt-auth.guard.ts
+│   │   │       └── roles.guard.ts
 │   │   ├── main.ts                # Application entry point
 │   │   ├── modules/               # Feature Modules
-│   │   │   └── auth/              # Authentication Module
-│   │   │       ├── auth.controller.spec.ts
-│   │   │       ├── auth.controller.ts
-│   │   │       ├── auth.module.ts
-│   │   │       ├── auth.service.spec.ts
-│   │   │       ├── auth.service.ts
-│   │   │       ├── dto/           # Data Transfer Objects
-│   │   │       │   ├── authResponse.dto.ts
-│   │   │       │   ├── login.dto.ts
-│   │   │       │   └── register.dto.ts
-│   │   │       ├── guards/
-│   │   │       │   └── refresh-token.guard.ts
-│   │   │       └── strategies/    # Passport strategies
-│   │   │           ├── jwt.strategy.ts
-│   │   │           └── refresh-token.strategy.ts
+│   │   │   ├── auth/              # Authentication Module
+│   │   │   │   ├── auth.controller.spec.ts
+│   │   │   │   ├── auth.controller.ts
+│   │   │   │   ├── auth.module.ts
+│   │   │   │   ├── auth.service.spec.ts
+│   │   │   │   ├── auth.service.ts
+│   │   │   │   ├── dto/           # Data Transfer Objects
+│   │   │   │   │   ├── authResponse.dto.ts
+│   │   │   │   │   ├── login.dto.ts
+│   │   │   │   │   └── register.dto.ts
+│   │   │   │   ├── guards/
+│   │   │   │   │   └── refresh-token.guard.ts
+│   │   │   │   └── strategies/    # Passport strategies
+│   │   │   │       ├── jwt.strategy.ts
+│   │   │   │       └── refresh-token.strategy.ts
+│   │   │   └── users/             # Users Module
+│   │   │       ├── users.controller.spec.ts
+│   │   │       ├── users.controller.ts
+│   │   │       ├── users.module.ts
+│   │   │       ├── users.service.spec.ts
+│   │   │       ├── users.service.ts
+│   │   │       └── dto/           # Data Transfer Objects
+│   │   │           ├── change-password.dto.ts
+│   │   │           ├── uesr-response.dto.ts
+│   │   │           └── update-user.dto.ts
 │   │   └── prisma/                # Prisma Global Service
 │   │       ├── prisma.module.ts
 │   │       ├── prisma.service.spec.ts
