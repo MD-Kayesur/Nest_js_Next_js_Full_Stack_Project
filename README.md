@@ -2,6 +2,17 @@
 
 This is a full-stack project with a NestJS backend and (planned) NextJS frontend.
 
+## Tech Stack & Packages
+
+This template is built with modern tools to ensure scalability, performance, and security:
+- **Core Framework**: [NestJS](https://nestjs.com/) (v11)
+- **Database ORM**: [Prisma](https://www.prisma.io/) (v7.8) optimized with `@prisma/adapter-pg`
+- **Database Engine**: PostgreSQL (using the native `pg` driver)
+- **Authentication**: JWT (`@nestjs/jwt`, `passport-jwt`, and `bcrypt` for password hashing)
+- **Validation**: `class-validator` & `class-transformer` for strict DTO payload checking
+- **API Documentation**: Swagger (`@nestjs/swagger`)
+- **Language**: TypeScript
+
 ## Project Structure
 
 ```text
