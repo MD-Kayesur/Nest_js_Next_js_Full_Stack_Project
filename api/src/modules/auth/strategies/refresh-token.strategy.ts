@@ -7,10 +7,6 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { Request } from "express";
 import * as bcrypt from 'bcrypt';
 @Injectable()
-
-
-@injectable()
-
 export class RefreshTokenStrategy extends PassportStrategy(Strategy,'jwt-refresh'){
     constructor(
         private prisma:PrismaService,
@@ -19,7 +15,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy,'jwt-refresh
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: ConfigService.get<string>('JWT_REFRESH_SECRET'),
+            secretOrKey: process.env.JWT_REFRESH_SECRET || 'defaultrefreshsecret2026',
             passReqToCallback:true,
         });
     }
@@ -41,7 +37,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy,'jwt-refresh
         }
 
 const user =await this.prisma.user.findUnique({
-    where:{id:payload.sub},
+    where:{id:payload.id},
     select:{
         id:true,
         email:true,
@@ -59,7 +55,7 @@ if(!refreshTokenMatch){
 }
 
 return{
-    userId:user.id,
+    id:user.id,
     email:user.email,
     role:user.role,
     

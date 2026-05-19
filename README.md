@@ -1,4 +1,4 @@
-# Nest.js & Next.js Full Stack Project
+# NestJS_Prisma_Tamplate
 
 This is a full-stack project with a NestJS backend and (planned) NextJS frontend.
 

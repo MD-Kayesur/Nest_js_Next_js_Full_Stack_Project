@@ -84,12 +84,13 @@ return {accessToken,refreshToken}
 
 //update refresh token
  async updateRefreshToken(userId:string,refreshToken:string){
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.prismaService.user.update({
         where:{
             id:userId,
         },
         data:{
-           refreshToken:refreshToken,
+           refreshToken:hashedRefreshToken,
         }
     })
 }
@@ -104,6 +105,11 @@ async refreshToken(userId:string,):Promise<authResponseDto>{
             firstName:true,
             lastName:true,
             role:true,
+            refreshToken:true,
+            phoneNumber:true,
+            address:true,
+            bio:true,
+            profileImage:true,
              
         }
     });
@@ -117,6 +123,7 @@ async refreshToken(userId:string,):Promise<authResponseDto>{
     const tokens = await this.generateTokens(user.id,user.email);
     await this.updateRefreshToken(user.id,tokens.refreshToken);
     return {
+        message: 'Token refreshed successfully',
         ...tokens,user
     };
 }
@@ -152,13 +159,17 @@ async login(loginDto:loginDto):Promise<authResponseDto>{
     const tokens = await this.generateTokens(user.id,user.email);
     await this.updateRefreshToken(user.id,tokens.refreshToken);
     return {
+        message: 'Login successful',
         ...tokens,user:{
             id:user.id,
             email:user.email,
             firstName:user.firstName,
             lastName:user.lastName,
             role:user.role,
-            
+            phoneNumber:user.phoneNumber,
+            address:user.address,
+            bio:user.bio,
+            profileImage:user.profileImage,
         }
     };
 }
