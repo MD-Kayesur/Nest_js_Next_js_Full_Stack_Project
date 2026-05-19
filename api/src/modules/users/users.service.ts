@@ -4,14 +4,13 @@ import { UserResponseDto } from './dto/uesr-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 import { ChangePasswordDto } from './dto/change-password.dto';
- import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    constructor(private  prismaService: PrismaService) { }
+    constructor(private prismaService: PrismaService) { }
 
 //get user profile by id
-
 async getMe(userId: string) {
     const user = await this.prismaService.user.findUnique({
         where: { id: userId },
@@ -27,9 +26,6 @@ async getMe(userId: string) {
             profileImage: true,
             createdAt: true,
             updatedAt: true,
-
-            password:false,
-
         }
     });
      if(!user){
@@ -38,12 +34,14 @@ async getMe(userId: string) {
      return user;
 }
 
+//find single user by id
+async findOne(userId: string): Promise<UserResponseDto> {
+    return this.getMe(userId);
+}
 
 //get all users
- 
 async findAll():Promise<UserResponseDto[]>{
-
-  return  await this.prismaService.user.findMany({
+  return await this.prismaService.user.findMany({
     select:{
         id:true,
         email:true,
@@ -56,8 +54,7 @@ async findAll():Promise<UserResponseDto[]>{
         profileImage:true,
         createdAt:true,
         updatedAt:true,
-        password:false,
-    }
+    },
     orderBy:{
         createdAt: 'desc',
     }
@@ -65,8 +62,7 @@ async findAll():Promise<UserResponseDto[]>{
 }
 
 //update user profile
-
-async update(userId: string,updateUserDto :UpdateUserDto ) :Promise<UserResponseDto>{
+async update(userId: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
     const existingUser = await this.prismaService.user.findUnique({
         where: { id: userId },
     });
@@ -74,45 +70,40 @@ async update(userId: string,updateUserDto :UpdateUserDto ) :Promise<UserResponse
         throw new NotFoundException('User not found');
     }
 
-if(updateUserDto?.email && updateUserDto.email !==existingUser.email){
-const emailTaken = await this.prismaService.user.findUnique({
-    where: { email: updateUserDto.email },
-});
-
-};
-if(emailTaken){
-    throw new NotFoundException('Email already exists');
-}
-
-
-
-//update user profile 
-const updateUser = await this.prismaService.user.update({
-    where: { id: userId },
-    data: UpdateUserDto,
-    select:{
-        id:true,
-        email:true,
-        firstName:true,
-        lastName:true,
-        role:true,
-   
-        createdAt:true,
-        updatedAt:true,
-
-        password:false,
+    if (updateUserDto?.email && updateUserDto.email !== existingUser.email) {
+        const emailTaken = await this.prismaService.user.findUnique({
+            where: { email: updateUserDto.email },
+        });
+        if (emailTaken) {
+            throw new NotFoundException('Email already exists');
+        }
     }
 
-})
+    //update user profile 
+    const updateUser = await this.prismaService.user.update({
+        where: { id: userId },
+        data: updateUserDto,
+        select:{
+            id:true,
+            email:true,
+            firstName:true,
+            lastName:true,
+            role:true,
+            phoneNumber:true,
+            address:true,
+            bio:true,
+            profileImage:true,
+            createdAt:true,
+            updatedAt:true,
+        }
+    });
 
-return updateUser;
-
- 
+    return updateUser;
 }
 
 //change password
-async changePassword(userId: string, changePasswordDto: ChangePasswordDto) : Promise<{message:string}>{
-    const {currentPassword,newPassword}=changePasswordDto;
+async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<{message:string}>{
+    const {currentPassword, newPassword} = changePasswordDto;
     const user = await this.prismaService.user.findUnique({
         where: { id: userId },
     });
@@ -120,37 +111,23 @@ async changePassword(userId: string, changePasswordDto: ChangePasswordDto) : Pro
         throw new NotFoundException('User not found');
     }
 
-
-    const isPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isPasswordValid) {
         throw new NotFoundException('Invalid current password');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await this.prismaService.user.update({
         where: { id: userId },
         data: {
             password: hashedPassword,
-        },
-        // select: {
-        //     id: true,
-        //     email: true,
-        //     firstName: true,
-        //     lastName: true,
-        //     role: true,
-
-        //     createdAt: true,
-        //     updatedAt: true,
-
-        //     password: false,
-        // }
+        }
     });
     return {message:"Password changed successfully"};
 }
 
-
- async remove(userId: string ) :Promise<{message:string}>{
+async remove(userId: string): Promise<{message:string}>{
     const user = await this.prismaService.user.findUnique({
         where: { id: userId },
     });
@@ -161,7 +138,8 @@ async changePassword(userId: string, changePasswordDto: ChangePasswordDto) : Pro
         where: { id: userId },
     });
     return {message:"User deleted successfully"};
- }
+}
+}
 
 
 
@@ -207,6 +185,5 @@ async changePassword(userId: string, changePasswordDto: ChangePasswordDto) : Pro
     // });
     // return updatedUser;
 // }
-}
 
 

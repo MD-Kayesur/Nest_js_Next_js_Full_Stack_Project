@@ -1,7 +1,7 @@
 //dto for change password
 
 import { ApiParam, ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsStrongPassword } from "class-validator";
+import { IsNotEmpty, IsString, IsStrongPassword, MinLength } from "class-validator";
 
 export class ChangePasswordDto{
 
