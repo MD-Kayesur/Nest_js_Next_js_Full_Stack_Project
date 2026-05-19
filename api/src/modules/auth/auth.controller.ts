@@ -5,7 +5,7 @@ import { authResponseDto } from './dto/authResponse.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { GetUser } from 'src/common/decorators/get-user.decorators';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { loginDto as LoginDto } from './dto/login.dto';
 
 @Controller('auth')
@@ -146,6 +146,27 @@ console.log('registerDto', registerDto)
 })
  async login(@Body() loginDto: LoginDto) : Promise<authResponseDto> {
   return await this.authService.login(loginDto);
+ }
+
+ //get current user details
+ @Get('me')
+ @UseGuards(JwtAuthGuard)
+ @HttpCode(HttpStatus.OK)
+ @ApiBearerAuth('JWT-auth')
+ @ApiOperation({
+   summary: 'get current user',
+   description: 'get authenticated user profile details'
+ })
+ @ApiResponse({
+   status: 200,
+   description: 'User details retrieved successfully',
+ })
+ @ApiResponse({
+   status: 401,
+   description: 'Unauthorized',
+ })
+ async getMe(@GetUser('id') userId: string) {
+   return this.authService.getMe(userId);
  }
 
  

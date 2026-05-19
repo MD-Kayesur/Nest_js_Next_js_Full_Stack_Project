@@ -174,15 +174,24 @@ async login(loginDto:loginDto):Promise<authResponseDto>{
     };
 }
 
-
-
-
-
-
-
-
-
-
-
+async getMe(userId: string) {
+    const user = await this.prismaService.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            phoneNumber: true,
+            address: true,
+            bio: true,
+            profileImage: true,
+            createdAt: true,
+            updatedAt: true,
+        }
+    });
+    return user;
+}
 
 }
