@@ -44,7 +44,6 @@ export class AuthController {
 
 
 
-@UseGuards(RefreshTokenGuard)
  async register( @Body() registerDto: RegisterDto) : Promise<authResponseDto> {
 console.log('registerDto', registerDto)
   return this.authService.register(registerDto);
