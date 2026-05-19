@@ -4,7 +4,34 @@ This is a full-stack project with a NestJS backend and (planned) NextJS frontend
 
 ## Project Structure
 
-- `api/`: NestJS backend application.
+```text
+NestJS_Prisma_Tamplate/
+├── api/                           # NestJS Backend Application
+│   ├── prisma/                    # Prisma Database Schema & Migrations
+│   │   └── schema.prisma          # Database models (User, Product, Order, etc.)
+│   ├── src/                       # Source Code
+│   │   ├── common/                # Reusable common code
+│   │   │   ├── decorators/        # Custom decorators (e.g., @GetUser)
+│   │   │   └── guards/            # Global/custom guards (e.g., JwtAuthGuard)
+│   │   ├── modules/               # Feature Modules
+│   │   │   └── auth/              # Authentication Module (JWT, Refresh Tokens)
+│   │   │       ├── dto/           # Data Transfer Objects
+│   │   │       ├── strategies/    # Passport strategies (JWT, Refresh)
+│   │   │       ├── auth.controller.ts
+│   │   │       ├── auth.module.ts
+│   │   │       └── auth.service.ts
+│   │   ├── prisma/                # Prisma Global Module/Service
+│   │   │   ├── prisma.module.ts
+│   │   │   └── prisma.service.ts
+│   │   ├── app.controller.ts      # Root controller
+│   │   ├── app.module.ts          # Main application module
+│   │   ├── app.service.ts         # Root service
+│   │   └── main.ts                # Application entry point (Swagger, validation, CORS setup)
+│   ├── .env.example               # Example environment variables
+│   ├── package.json               # Dependencies and scripts
+│   └── tsconfig.json              # TypeScript configuration
+└── README.md                      # Project documentation
+```
 
 ## Getting Started
 
