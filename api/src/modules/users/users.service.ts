@@ -1,19 +1,15 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserResponseDto } from './dto/uesr-response.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+ 
 
 @Injectable()
 export class UsersService {
-    constructor(private prismaService: PrismaService) { }
+    constructor(private  prismaService: PrismaService) { }
 
 //get user profile by id
-async getMe(userId: string): Promise<UserResponseDto> {
-    return this.findOne(userId);
-}
 
-//find single user by id
-async findOne(userId: string): Promise<UserResponseDto> {
+async getMe(userId: string) {
     const user = await this.prismaService.user.findUnique({
         where: { id: userId },
         select: {
@@ -28,6 +24,9 @@ async findOne(userId: string): Promise<UserResponseDto> {
             profileImage: true,
             createdAt: true,
             updatedAt: true,
+
+            password:false,
+
         }
     });
      if(!user){
@@ -36,9 +35,12 @@ async findOne(userId: string): Promise<UserResponseDto> {
      return user;
 }
 
+
 //get all users
+ 
 async findAll():Promise<UserResponseDto[]>{
-  return await this.prismaService.user.findMany({
+
+  return  await this.prismaService.user.findMany({
     select:{
         id:true,
         email:true,
@@ -51,7 +53,8 @@ async findAll():Promise<UserResponseDto[]>{
         profileImage:true,
         createdAt:true,
         updatedAt:true,
-    },
+        password:false,
+    }
     orderBy:{
         createdAt: 'desc',
     }
@@ -59,14 +62,15 @@ async findAll():Promise<UserResponseDto[]>{
 }
 
 //update user profile
-async update(id: string, currentUserId: string, body: UpdateUserDto) {
+
+async update(id: string, req: RequestWithUser, body: UpdateUserDto) {
     const user = await this.prismaService.user.findUnique({
-        where: { id: currentUserId },
+        where: { id: req.user.id },
     });
     if (!user) {
         throw new NotFoundException('User not found');
     }
-    if (user.id !== id && user.role !== 'ADMIN') {
+    if (user.id !== id) {
         throw new UnauthorizedException('Unauthorized');
     }
     return this.prismaService.user.update({
@@ -74,4 +78,7 @@ async update(id: string, currentUserId: string, body: UpdateUserDto) {
         data: body,
     });
 }
+
+
+
 }
