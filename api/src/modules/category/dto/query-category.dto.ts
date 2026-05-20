@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsBoolean, IsNumber, IsOptional, IsString, Min } from "class-validator";
-import { type } from "os";
 
 //query category dto
 export class QueryCategoryDto  {
@@ -36,12 +35,12 @@ export class QueryCategoryDto  {
         minimum:1
     })
     @IsString()
-    @type(()=>number )
+    @Type(()=>Number )
     @IsOptional()
-@IsNumbe()
+@IsNumber()
 @Min(1)
 @IsOptional()
-limit:10;
+limit?:number;
 page?:number;
 
 

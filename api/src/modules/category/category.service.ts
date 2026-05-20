@@ -28,7 +28,7 @@ export class CategoryService {
       where: { slug: categorySlug },
     });
     if (existingCategory) {
-      throw ExceptionHelper.Conflict('Category already exists '+categorySlug);
+      throw new ConflictException('Category already exists '+categorySlug);
     }
 
     const category = await this.prisma.category.create({
@@ -36,7 +36,7 @@ export class CategoryService {
         name: name.trim(),
         description: description?.trim(),
         imageUrl: imageUrl?.trim(),
-        slug: slug?.trim(),
+        slug: categorySlug.trim(),
         isActive: isActive ?? true,
       },
       select: {
@@ -57,12 +57,14 @@ export class CategoryService {
     });
     const categoryResponse: CategoryResponseDto = {
       ...category,
-      productCount: category.products.length,
+      productCount: (category as any).products.length,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt,
     };
     return categoryResponse;
-  }  
+  } catch (error) {
+    throw error;
+  }
  }
 
 
@@ -70,7 +72,7 @@ export class CategoryService {
 
 //get all categories
 async findAll(queryDto:QueryCategoryDto):Promise<{data:CategoryResponseDto[] ,meta:{total:number,page:number,limit:number,totalPage:number}}>{
-  const {page,limit,search,isActive}=queryDto;
+  const {page = 1, limit = 10, search, isActive}=queryDto;
  const where :Prisma.CategoryWhereInput={};
 
  if(isActive){
@@ -120,20 +122,6 @@ async findOne(id: string): Promise<CategoryResponseDto> {
     }
 
 return this.formateCategory(category,Number(category._count.products));
-
-
-
-
-
-
-
-    const categoryResponse: CategoryResponseDto = {
-      ...category,
-      productCount: category._count.products,
-      createdAt: category.createdAt,
-      updatedAt: category.updatedAt,
-    };
-    return categoryResponse;
   } catch (error) {
     throw error;
   }
@@ -219,11 +207,11 @@ async remove(id: string): Promise<{ message: string }> {
       },
     });
 
-if(!caregory){
+if(!existingCategory){
 throw new NotFoundException("Category not found");
 }
  
-if(caregory._count.products>0){
+if(existingCategory._count.products>0){
   throw new BadRequestException("Category has products");
 }
 

@@ -15,19 +15,21 @@ export class CategoryResponseDto {
     @ApiProperty({
         description: 'Category Description',
         example: 'This is a category description',
+        nullable: true,
     })
-    description: string;
+    description: string | null;
 
     @ApiProperty({
         description: 'Category Image',
         example: 'Category Image',
+        nullable: true,
     })
-    imageUrl?: string;
+    imageUrl?: string | null;
     @ApiProperty({
         description: 'Category Slug',
         example: 'Category Slug',
     })
-    slug?: string;
+    slug: string;
     @ApiProperty({
         description: 'Category Status',
         example: true,
