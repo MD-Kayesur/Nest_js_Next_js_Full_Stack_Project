@@ -1,11 +1,12 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+ 
 import { Prisma } from '@prisma/client';
-import { ExceptionHelper } from 'src/common/helpers/exception.helper';
+ 
 import { QueryCategoryDto } from './dto/query-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CategoryService {
@@ -204,7 +205,7 @@ return this.formateCategory(updatedCategory,Number(updatedCategory._count.produc
 
 }
 
-// delete category
+// remove category
 async remove(id: string): Promise<{ message: string }> {
   try {
     const existingCategory = await this.prisma.category.findUnique({
@@ -217,9 +218,14 @@ async remove(id: string): Promise<{ message: string }> {
         },
       },
     });
-    if (!existingCategory) {
-      throw new NotFoundException('Category not found');
-    }
+
+if(!caregory){
+throw new NotFoundException("Category not found");
+}
+ 
+if(caregory._count.products>0){
+  throw new BadRequestException("Category has products");
+}
 
     await this.prisma.category.delete({
       where: { id },
