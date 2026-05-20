@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards, HttpStatus, Query } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -7,6 +7,9 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorators';
 import { CategoryResponseDto } from './dto/category-response.dto';
+import { QueryCategoryDto } from './dto/query-category.dto';
+import { promises } from 'dns';
+import { Role } from '@prisma/client';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -53,19 +56,142 @@ export class CategoryController {
 
   //Get all categories
   @Get()
-  findAll() {
-    return this.categoryService.findAll();
+ @ApiOperation({summary:'Get all categories'})
+ @ApiResponse({
+  status:200,
+  description:'List of categories',
+  schema: {
+    type: 'object',
+    properties: {
+      data: {
+        type: 'array',
+        items: {
+          $ref: '#/components/schemas/CategoryResponseDto',
+        },
+      },
+      meta: {
+        type: 'object',
+        properties: {
+          total: {
+            type: 'number',
+          },
+          page: {
+            type: 'number',
+          },
+          limit: {
+            type: 'number',
+          },
+          totalPage: {
+            type: 'number',
+          },
+          
+        },
+      },
+    }
+  },
+
+})
+ 
+@ApiResponse({
+  status:500,
+  description:'Internal server error',
+})
+
+  async findAll(@Query() queryDto: QueryCategoryDto) {
+    return this.categoryService.findAll(queryDto);
   }
 
+
+
+
+
+
+
+
+
+
+//get category by id
+
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  @ApiOperation({summary:'Get category by id'})
+  @ApiResponse({
+    status:200,
+    description:'Category found successfully',
+    type:CategoryResponseDto,
+  })
+  @ApiResponse({
+    status:404,
+    description:'Category not found',
+  })
+  @ApiResponse({
+    status:500,
+    description:'Internal server error',
+  })
+  @HttpCode(HttpStatus.OK)
+  async findOne(@Param('id') id: string):Promise<CategoryResponseDto> {
     return this.categoryService.findOne(id);
   }
 
+
+
+  //get category by slug
+  
+  @Get('slug/:slug')
+  @ApiOperation({summary:'Get category by slug'})
+  @ApiResponse({
+    status:200,
+    description:'Category found successfully',
+    type:CategoryResponseDto,
+  })
+  @ApiResponse({
+    status:404,
+    description:'Category not found',
+  })
+  @ApiResponse({
+    status:500,
+    description:'Internal server error',
+  })
+  @HttpCode(HttpStatus.OK)
+  async findBySlug(@Param('slug') slug: string):Promise<CategoryResponseDto> {
+    return await this.categoryService.findBySlug(slug);
+  }
+
+
+//update category
   @Patch(':id')
+    @UseGuards(JwtAuthGuard,RolesGuard)
+ @Roles(Role.ADMIN)
+ @ApiBearerAuth('JWT-auth')
+  @ApiOperation({summary:'Update category (ADMIN only)'})
+  @ApiBody({type:UpdateCategoryDto})
+  @ApiResponse({
+    status:200,
+    description:'Category updated successfully',
+    type:CategoryResponseDto,
+  })
+  @ApiResponse({
+    status:404,
+    description:'Category not found',
+  })
+  @ApiResponse({
+    status:500,
+    description:'Internal server error',
+  })
+  @HttpCode(HttpStatus.OK)
   update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
     return this.categoryService.update(id, updateCategoryDto);
   }
+
+
+
+
+
+
+
+
+
+
+
 
   @Delete(':id')
   remove(@Param('id') id: string) {

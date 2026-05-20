@@ -1,29 +1,30 @@
-//create category dto
+//dto for update category
 
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsEnum, isNotEmpty, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
-export class CreateCategoryDto {
-    @IsNotEmpty()
+export class UpdateCategoryDto  {
     @ApiProperty({
         example: 'Electronics',
         description: 'Category name',
         maxLength: 100,
         minLength: 3,
+        required:false,
     })
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @MaxLength(100)
     @MinLength(3)
-    name: string;
+    name?: string;
 
-    
+
     @ApiProperty({
         example: 'Electronics',
         description: 'Category description',
+        required:false,
     })
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @MaxLength(500)
     @MinLength(10)
     description?: string;

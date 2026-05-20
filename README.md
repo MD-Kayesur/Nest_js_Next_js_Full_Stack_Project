@@ -145,3 +145,18 @@ This template provides a robust foundation for building secure and scalable APIs
 3. **Global Configuration**
    - **Validation**: Incoming requests are validated automatically using `ValidationPipe`. Any data not defined in the DTOs is securely stripped away.
    - **Swagger Documentation**: The API is automatically documented. Navigate to `http://localhost:3001/api/v1/docs` in your browser when the server is running to test the endpoints interactively.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://www.youtube.com/watch?v=RjMvgpeoSuw
