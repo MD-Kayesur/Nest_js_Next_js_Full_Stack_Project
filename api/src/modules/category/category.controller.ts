@@ -178,7 +178,7 @@ export class CategoryController {
     description:'Internal server error',
   })
   @HttpCode(HttpStatus.OK)
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+  update(@Param('id') id: string,  updateCategoryDto: UpdateCategoryDto):Promise<CategoryResponseDto> {
     return this.categoryService.update(id, updateCategoryDto);
   }
 
@@ -190,11 +190,27 @@ export class CategoryController {
 
 
 
-
-
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+//delete category
+@Delete(':id')
+    @UseGuards(JwtAuthGuard,RolesGuard)
+ @Roles(Role.ADMIN)
+ @ApiBearerAuth('JWT-auth')
+  @ApiOperation({summary:'Delete category (ADMIN only)'})
+  @ApiResponse({
+    status:200,
+    description:'Category deleted successfully',
+    type:CategoryResponseDto,
+  })
+  @ApiResponse({
+    status:404,
+    description:'Category not found',
+  })
+  @ApiResponse({
+    status:500,
+    description:'Internal server error',
+  })
+  @HttpCode(HttpStatus.OK)
+  async remove(@Param('id') id: string):Promise<{message:string}> {
     return this.categoryService.remove(id);
   }
 }

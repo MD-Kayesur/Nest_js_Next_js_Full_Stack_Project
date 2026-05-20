@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -162,6 +162,76 @@ catch (error) {
   throw error;
 }
 }
+
+
+// update category
+async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<CategoryResponseDto> {
+
+ const existingCategory = await this.prisma.category.findUnique({
+  where: { id },
+});
+
+if(!existingCategory){
+  throw new NotFoundException('Category not found');
+}
+
+
+if (updateCategoryDto.slug && updateCategoryDto.slug !== existingCategory.slug) {
+  
+const slugTaken=await this.prisma.category.findUnique({
+  where:{slug:updateCategoryDto.slug},
+});
+if(slugTaken){
+  throw new ConflictException(`Category slug already exists ${updateCategoryDto.slug} `);
+}
+
+}
+
+const updatedCategory = await this.prisma.category.update({
+  where: { id },
+  data: updateCategoryDto,
+  include: {
+    _count: {
+      select: {
+        products: true,
+      },
+    },
+  },
+});
+
+return this.formateCategory(updatedCategory,Number(updatedCategory._count.products));
+
+
+}
+
+// delete category
+async remove(id: string): Promise<{ message: string }> {
+  try {
+    const existingCategory = await this.prisma.category.findUnique({
+      where: { id },
+      include:{
+        _count:{
+          select:{
+            products:true,
+          },
+        },
+      },
+    });
+    if (!existingCategory) {
+      throw new NotFoundException('Category not found');
+    }
+
+    await this.prisma.category.delete({
+      where: { id },
+    });
+
+    return { message: 'Category deleted successfully' };
+  } catch (error) {
+    throw error;
+  }
+}
+
+
 
 
 
