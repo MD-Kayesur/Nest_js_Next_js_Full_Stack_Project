@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-products.dto';
@@ -137,6 +137,51 @@ async findOne (@Param('id') id:string):Promise<ProductResponseDto>{
     return await this.productsService.findOne(id);
 }
 
+
+//update a product
+
+@Patch(':id')
+@UseGuards(AuthGuard(),RolesGuard)
+@Roles(Role.ADMIN)
+@ApiBearerAuth('JWT-auth')
+@ApiOperation({summary:'Update a product'})
+@ApiBody({
+    type:UpdateProductDto,
+    description:'Product data',
+})
+@ApiResponse({
+    status:200,
+    description:'Product updated successfully',
+    type:ProductResponseDto,
+})
+@ApiResponse({
+    status:400,
+    description:'Invalid request',
+})
+@ApiResponse({
+    status:500,
+    description:'Internal server error',
+})
+@ApiResponse({
+    status:401,
+    description:'Unauthorized',
+})
+@ApiResponse({
+    status:403,
+    description:'Forbidden_ Admin role required',
+})
+@ApiResponse({
+    status:404,
+    description:'Product not found',
+})
+@ApiResponse({
+    status:409,
+    description:'Conflict',
+})
+@HttpCode(HttpStatus.OK)
+async update (@Param('id') id:string, @Body() updateProductDto:UpdateProductDto):Promise<ProductResponseDto>{
+    return await this.productsService.update(id,updateProductDto);
+}
 
 
 

@@ -90,7 +90,19 @@ if(search) {
 
 
     
-
+//get product by id
+async findOne(id:string):Promise<ProductResponseDto>{
+    const product=await this.prisma.product.findUnique({
+        where:{id},
+        include:{
+            category:true,
+        },
+    });
+    if(!product){
+        throw new NotFoundException(`Product with ID "${id}" not found`);
+    }
+    return this.formateProduct(product);
+}
 
 
 
