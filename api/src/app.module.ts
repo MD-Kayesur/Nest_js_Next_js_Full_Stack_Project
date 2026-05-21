@@ -6,12 +6,13 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CategoryModule } from './modules/category/category.module';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [PrismaModule, AuthModule,ConfigModule.forRoot({
     isGlobal:true,
     envFilePath:'.env',
-  }), UsersModule, CategoryModule,],
+  }), UsersModule, CategoryModule, ProductsModule,],
   controllers: [AppController],
   providers: [AppService],
 })

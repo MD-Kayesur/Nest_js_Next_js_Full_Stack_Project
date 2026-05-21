@@ -45,7 +45,7 @@ export class CategoryController {
   description:'Conflict',
 })
 @HttpCode(HttpStatus.OK)
-  async create (createCategoryDto:CreateCategoryDto):Promise<CategoryResponseDto>{
+  async create (@Body() createCategoryDto:CreateCategoryDto):Promise<CategoryResponseDto>{
     return this.categoryService.create(createCategoryDto);
   }
   
@@ -178,7 +178,7 @@ export class CategoryController {
     description:'Internal server error',
   })
   @HttpCode(HttpStatus.OK)
-  update(@Param('id') id: string,  updateCategoryDto: UpdateCategoryDto):Promise<CategoryResponseDto> {
+  update(@Param('id') @Body() id: string,  updateCategoryDto: UpdateCategoryDto):Promise<CategoryResponseDto> {
     return this.categoryService.update(id, updateCategoryDto);
   }
 
