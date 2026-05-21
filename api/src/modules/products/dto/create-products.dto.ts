@@ -3,7 +3,7 @@
 
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsOptional, IsString, max, MaxLength, maxLength, Min } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, max, MaxLength, maxLength, Min, MinLength } from "class-validator";
 
 export class CreateProductDto {
     @ApiProperty({
@@ -53,11 +53,16 @@ export class CreateProductDto {
     stock?: number;
 
     @ApiProperty({
-        description: 'Product sku',
+        description: 'Stpck keeping unit of Product sku',
         example: 'SKU-123',
+        maxLength: 100,
+        minLength: 1,
     })
     @IsString()
     @IsOptional()
+    @IsNotEmpty()
+    @MaxLength(100)
+    @MinLength(1)
     sku?: string;
 
     @ApiProperty({
@@ -71,8 +76,24 @@ export class CreateProductDto {
     @ApiProperty({
         description: 'Product category id',
         example: '1',
+        required:true,
     })
     @IsString()
     @IsNotEmpty()
     categoryId: string;
+
+
+    @ApiProperty({
+        description: 'Product status',
+        example: true,
+        default: true,
+        required:false,
+    })
+    @IsBoolean()
+    @IsOptional()
+    @Type(() => Boolean)
+    isActive?: boolean;
+
+
+
 }

@@ -25,6 +25,7 @@ export class ProductsController {
     @ApiResponse({
         status:201,
         description:'Product created successfully',
+        type:ProductResponseDto,
     })
     @ApiResponse({
         status:400,
