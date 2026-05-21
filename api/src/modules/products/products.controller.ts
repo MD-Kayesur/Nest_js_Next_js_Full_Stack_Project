@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-products.dto';
@@ -7,6 +7,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorators';
 import { Role } from '@prisma/client';
+import { QueryCategoryDto } from '../category/dto/query-category.dto';
+import { QueryProductDto } from './dto/query-product.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -39,12 +41,107 @@ export class ProductsController {
         status:401,
         description:'Unauthorized',
     })
+
+    @ApiResponse({
+        status:403,
+        description:'Forbidden_ Admin role required',
+    })
     @ApiResponse({
         status:409,
         description:'Conflict',
     })
     @HttpCode(HttpStatus.OK)
     async create (@Body() createProductDto:CreateProductDto):Promise<ProductResponseDto>{
-        return this.productsService.createProduct(createProductDto);
+        return await this.productsService.create(createProductDto);
     }
+
+
+
+//get all product 
+
+@Get()
+@ApiOperation({summary:'Get all products'})
+@ApiResponse({
+    status:200,
+    description: ' All Product list with pagination and filtering',
+    schema:{
+        
+        type:"object",
+        properties:{
+            data:{
+                type:"array",
+                items:{
+                    $ref:'#/components/schemas/ProductResponseDto'
+                }
+            },
+             meta:{
+                type:'object',
+                properties:{
+                    total:{
+                        type:'number',
+                       
+                        description:'Total number of products'
+                    },
+
+                    page:{
+                        type:'number',
+                        description:'Current page'
+                    },
+                    limit:{
+                        type:'number',
+                        description:'Limit per page'
+                    },
+                    totalPages:{
+                        type:'number',
+                        description:'Total pages'
+                    },
+                }
+             }
+        },
+    }
+})
+
+
+
+
+@ApiResponse({
+    status:500,
+    description:'Internal server error',
+})
+@HttpCode(HttpStatus.OK)
+async findAll(@Query() queryDto:QueryProductDto){
+    return await this.productsService.findAll(queryDto);
+}
+
+
+
+//get product by id
+
+@Get(':id')
+@ApiOperation({summary:'Get product by id'})
+@ApiResponse({
+    status:200,
+    description:'Product found successfully',
+    type:ProductResponseDto,
+})
+@ApiResponse({
+    status:404,
+    description:'Product not found',
+})
+@ApiResponse({
+    status:500,
+    description:'Internal server error',
+})
+@HttpCode(HttpStatus.OK)
+async findOne (@Param('id') id:string):Promise<ProductResponseDto>{
+    return await this.productsService.findOne(id);
+}
+
+
+
+
+
+
+
+
 }
