@@ -19,7 +19,12 @@ createOrder(createOrderDto: CreateOrderDto) {
         return this.prisma.order.findMany();
     }
 
-
+//create order by user
+createByUser(userId:string,createOrderDto: CreateOrderDto) {
+    return this.prisma.order.create({
+        data: createOrderDto,
+    });
+}
 
 
 
