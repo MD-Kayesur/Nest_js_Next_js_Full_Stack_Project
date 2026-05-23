@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Post, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Post, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-orders.dto';
 import { OrdersService } from './orders.service';
@@ -8,6 +8,7 @@ import { ModerateThrottler } from 'src/common/decorators/custom-throttler.decora
 import { orderApiResponseDto } from './dto/order-response.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorators';
 import { NotFoundError } from 'rxjs';
+import { create } from 'domain';
  
 
 @ApiTags('Orders')
@@ -40,19 +41,43 @@ const {items,shippingAddress=createOrderDto.shippingAddress
 for (const item of items) {
     const product=await this.prisma.product.findUnique({where:{id:item.productId}});
     if (!product) { 
-        throw new NotFoundException("product not found")
+        throw new NotFoundException(`product with id ${item.productId} not found`)
     }
     if (product.stock < item.quantity) {
-        throw new NotFoundException("Insufficient stock")
+        throw new BadRequestException(`Insufficient stock for product ${item.name}. Available stock: ${product.stock} . Requested quantity: ${item.quantity}`)
   
     };
-    
-}
 
+    const total = items.reduce((sum,item)=>sum + item.price * item.quantity,0)
+    const latestCart = await this.prisma.cart.findFirst({
+        where:{userId,checkedOutAt:false},
+         
+        orderBy:{creatdAt: 'desc'}
+    })
     
+
+    const order=await this.prisma.order.$transaction(async(tx)=>{
+        const newOrder=await tx.order.create({
+        data:{
+            userId,
+            status:orderStatus.PENDING,
+
+            shippingAddress,
+             totalAmount:total,
+             cardID: lastestCart?.id || "cart-not-found",
+
+            orderItems:{
+                create:items.map((item)=>({
+                    product:item.product,
+                    quantity:item.quantity,
+                    price:item.price
+                })),
+            },
+        },
+    })
 
 
 
  
 
-   }}
+   }}}
