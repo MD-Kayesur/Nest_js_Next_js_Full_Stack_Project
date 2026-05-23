@@ -1,9 +1,36 @@
  //create new order dto
  
  import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
  
- export class CreateOrderDto {
+ export class OrderItemDto {
+
+
+
+     @ApiProperty({
+        description: 'Product id',
+        example: 'd6be59d6-180b-4c09-b1f0-791886e9059d',
+        required: true,
+    })
+    @IsNotEmpty()
+     @IsString()
+    productId: string;
+
+
+
+    @ApiProperty({
+        description: 'Product quantity',
+        example: 1,
+        required: true,
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    quantity: number;
+
+
+
+
+
     @ApiProperty({
         description: 'User id',
         example: 'd6be59d6-180b-4c09-b1f0-791886e9059d',
@@ -13,22 +40,7 @@ import { IsNumber, IsString } from "class-validator";
     
     userId: string;
 
-
-    @ApiProperty({
-        description: 'Product id',
-        example: 'd6be59d6-180b-4c09-b1f0-791886e9059d',
-        required: true,
-    })
-    @IsString()
-    productId: string;
-
-    @ApiProperty({
-        description: 'Product quantity',
-        example: 1,
-        required: true,
-    })
-    @IsNumber()
-    quantity: number;
+ 
 
     @ApiProperty({
         description: 'Product price',
@@ -103,4 +115,10 @@ import { IsNumber, IsString } from "class-validator";
         required: true,
     })
     orderStatus: string;
+}
+
+
+export class CreateOrderItemDto {
+    items: OrderItemDto[];
+    
 }
