@@ -322,7 +322,7 @@ async findOne(
 
 //ADMIN update order
 
-@Patch(':id')
+@Patch('admin/:id')
 @Roles(Role.ADMIN)
 @RelaxedThrottler()
 @ApiOperation({
@@ -335,15 +335,18 @@ async findOne(
     description:'order ID',
     required:true,
 })
+@ApiBody({
+    type:UpdateOrderDto
+})
 @ApiOkResponse({
-     description:'order details   .',
-     type:orderApiResponseDto<OrderResponseDto>
+     description:'order updated successfully  .',
+     type:orderApiResponseDto
 })
 @ApiNotFoundResponse({type:orderApiResponseDto,description: 'Order not found',})
 @ApiForbiddenResponse({ description: ' admin access required',})
 @ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
 @ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
-async update(
+async updateAdmin(
     @Param('id') id:string ,@Body() updateOrderDto: UpdateOrderDto,
 ){
     return await this.ordersService.update(id,updateOrderDto)

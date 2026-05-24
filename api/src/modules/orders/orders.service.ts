@@ -4,6 +4,7 @@ import { CreateOrderDto } from './dto/create-orders.dto';
 import { orderApiResponseDto, OrderResponseDto } from './dto/order-response.dto';
 import { Order, OrderItem, OrderStatus, Product, User } from '@prisma/client';
 import { QueryOrderDto } from './dto/query-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -212,7 +213,35 @@ async findOne(id:string,userId:string) :Promise<orderApiResponseDto<OrderRespons
 
 
 
+///update order status by admin
 
+async update(id:string,updateOrderDto:UpdateOrderDto):Promise<orderApiResponseDto<OrderResponseDto>>{
+    const where:any={id}
+    if(userId)where.userId = userId
+    const 
+    const order = await this.prisma.order.findUnique({
+        where,
+        include:{
+            orderItems:{
+                include:{
+                    product:true,
+                },
+            },
+            user:true
+        }
+    })
+    if(!order){
+        throw new NotFoundException(`Order with ID ${id} not found`)
+    }
+    return this.warp(await this.prisma.order.update({
+        where:{id},
+        data:{
+            status:updateOrderDto.status,
+            trakingNumber:updateOrderDto.trakingNumber,
+            notes:updateOrderDto.notes,
+        }
+    }))
+}
 
 
 
@@ -274,11 +303,7 @@ async findOne(id:string,userId:string) :Promise<orderApiResponseDto<OrderRespons
 
 
 
-
-    //create order by user
-    createByUser(userId: string, createOrderDto: CreateOrderDto) {
-        return this.createOrder(userId, createOrderDto);
-    }
+ 
 
 
 }
