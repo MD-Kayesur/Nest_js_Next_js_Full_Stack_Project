@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-orders.dto';
 import { orderApiResponseDto, OrderResponseDto } from './dto/order-response.dto';
 import { Order, OrderItem, OrderStatus, Product, User } from '@prisma/client';
+import { QueryOrderDto } from './dto/query-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -69,6 +70,32 @@ export class OrdersService {
     }
 
     
+
+
+
+ //get all orders for admin and user
+    async findAllForAdmin(query:QueryOrderDto):Promise<{
+        data:OrderResponseDto[],
+        total:number,
+        page:number,
+        limit:number
+    }>{
+        const {page,limit,search,status,startDate,endDate} = query
+
+
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
     private warp(order:Order & {orderItems:(OrderItem & {product:Product})[]} , user?:User):orderApiResponseDto<OrderResponseDto>{
         return {
             success: true,
@@ -118,10 +145,6 @@ export class OrdersService {
 
 
 
- //get all orders
-    getAllOrders() {
-        return this.prisma.order.findMany();
-    }
 
     //create order by user
     createByUser(userId: string, createOrderDto: CreateOrderDto) {
