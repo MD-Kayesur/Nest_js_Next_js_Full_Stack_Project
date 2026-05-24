@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-orders.dto';
-import { orderApiResponseDto } from './dto/order-response.dto';
-import { Order, OrderStatus } from '@prisma/client';
+import { orderApiResponseDto, OrderResponseDto } from './dto/order-response.dto';
+import { Order, OrderItem, OrderStatus, Product, User } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -10,7 +10,7 @@ export class OrdersService {
     constructor(private prisma: PrismaService) { }
 
     //create order 
-    async createOrder(userId: string, createOrderDto: CreateOrderDto): Promise<orderApiResponseDto<any>> {
+    async create(userId: string, createOrderDto: CreateOrderDto): Promise<orderApiResponseDto<any>> {
         const { items, shippingAddress = createOrderDto.shippingAddress } = createOrderDto;
 
         for (const item of items) {
@@ -65,14 +65,60 @@ export class OrdersService {
             return newOrder;
         });
 
+        return  this.warp(order)
+    }
+
+    
+    private warp(order:Order & {orderItems:(OrderItem & {product:Product})[]} , user?:User):orderApiResponseDto<OrderResponseDto>{
         return {
             success: true,
             message: 'Order created successfully',
-            data: order
+            data: this.map(order)
         };
     }
 
-    //get all orders
+    private map(order:Order & {orderItems:(OrderItem & {product:Product})[]} , user?:User):OrderResponseDto{
+        return{
+            id: order.id,
+            userId: order.userId,
+            status: order.status,
+            items: order.orderItems,
+            total: order.totalAmount,
+            shippingAddress: order.shippingAddress ?? "",
+            items: order.orderItems.map((item) => {
+                return {
+                    id: item.id,
+                    productId: item.productId,
+                    productName: item.product.name,
+                    productImage: item.product.image,
+                    quantity: item.quantity,
+                    price: item.price,
+                    subtotal:Number(item.price)*Number(item.quantity),
+                    createdAt:item.createdAt,
+                    updatedAt:item.updatedAt
+                }
+            }),
+            ...(order.user&&{
+                userEmail:order.user.email,
+                userName: `${order.user.firstName} ${order.user.lastName}`.trim(),
+                userPhone:order.user.phone,
+                userAddress:order.user.address
+            })
+            shippingCity: order.shippingCity,
+            shippingCountry: order.shippingCountry,
+            shippingZipCode: order.shippingZipCode,
+            shippingPhone: order.shippingPhone,
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt
+        }
+    }
+
+
+
+
+
+
+ //get all orders
     getAllOrders() {
         return this.prisma.order.findMany();
     }
@@ -81,5 +127,17 @@ export class OrdersService {
     createByUser(userId: string, createOrderDto: CreateOrderDto) {
         return this.createOrder(userId, createOrderDto);
     }
+
+
 }
 
+
+
+
+
+
+
+
+
+
+ 
