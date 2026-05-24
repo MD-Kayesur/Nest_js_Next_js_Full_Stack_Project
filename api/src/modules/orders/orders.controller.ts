@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiTooManyRequestsResponse, getSchemaPath } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiTooManyRequestsResponse, getSchemaPath } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-orders.dto';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { ModerateThrottler, RelaxedThrottler } from 'src/common/decorators/custom-throttler.decorators';
-import { orderApiResponseDto } from './dto/order-response.dto';
+import { orderApiResponseDto, PaginatedResponseDto } from './dto/order-response.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorators';
 import { Roles } from 'src/common/decorators/roles.decorators';
 import { Role } from '@prisma/client';
@@ -190,47 +190,77 @@ async findMyOrders(
     return await this.ordersService.findMyOrders(query)
 }
 
+
+
+
+
 //user Get own orders
 
 @Get()
 @RelaxedThrottler()
 @ApiOperation({
-    summary:'[User] get my orders' ,
+    summary:'Get all orders for current user (paginated) ' ,
     description:'get my orders',
 })
-
-@ApiResponse({
-    status:200,type:orderApiResponseDto,description: 'data fetch successfully',
-    schema:{
-        type:'object',
-        properties:{
-            data:{
-                type:'array',
-                items:{$ref:getSchemaPath('OrderResponseDto')}
-            },
-
-            total:{
-                type:'number',
-               
-            },
-            page:{
-                type:'number',
-               
-            },
-            limit:{
-                type:'number',
-               
-            },
-              
-        }
-    }
+@ApiQuery({
+    name:'page',
+    type:Number,
+    description:'page number',
+    required:false,
+    default:1
 })
-@ApiForbiddenResponse({ description: ' admin access required',})
-async getMyOrders(
-    @Query() QueryOrderDto
+@ApiQuery({
+    name:'limit',
+    type:Number,
+    description:'limit per page',
+    required:false,
+    default:10
+})
+@ApiQuery({
+    name:'search',
+    type:String,
+    description:'search by user email,phone or name',
+    required:false,
+})
+@ApiQuery({
+    name:'status',
+    type:String,
+    description:'search by order status',
+    required:false,
+})
+@ApiQuery({
+    name:'startDate',
+    type:Date,
+    description:'search by order date',
+    required:false,
+})
+@ApiQuery({
+    name:'endDate',
+    type:Date,
+    description:'search by order date',
+    required:false,
+})
+
+@ApiOkResponse({
+     description:'list of user orders   .',
+     type:PaginatedResponseDto
+})
+
+
+async findAll(
+    @Query() query:QueryOrderDto ,@GetUser("id") userId: string
 ){
-    return await this.ordersService.findMyOrders(query)
+    return await this.ordersService.findAll(userId,query)
 }
+
+
+//Admin: Get order by id 
+
+@Get(':id')
+
+
+
+
 
 
 
