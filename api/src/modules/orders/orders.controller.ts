@@ -113,16 +113,124 @@ async findAllForAdmin(
     return await this.ordersService.findAllForAdmin(query)
 }
 
+ 
+//user Get own Orders
 
-@ApiCreatedResponse({type:orderApiResponseDto,description: 'Order created successfully',})
-@ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data or insufficient stock',})
-@ApiNotFoundResponse({type:orderApiResponseDto,description: 'cart not found or empty',})
-@ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
-async getAllOrders() {
-    return this.ordersService.getAllOrders();
+@Get('my-orders')
+@RelaxedThrottler()
+@ApiOperation({summary:'[User] get my orders' ,description:'get my orders',})
+@ApiQuery({
+    name:'page',
+    type:Number,
+    description:'page number',
+    required:false,
+    default:1
+})
+@ApiQuery({
+    name:'limit',
+    type:Number,
+    description:'limit per page',
+    required:false,
+    default:10
+})
+@ApiQuery({
+    name:'search',
+    type:String,
+    description:'search by user email,phone or name',
+    required:false,
+})
+@ApiQuery({
+    name:'status',
+    type:String,
+    description:'search by order status',
+    required:false,
+})
+@ApiQuery({
+    name:'startDate',
+    type:Date,
+    description:'search by order date',
+    required:false,
+})
+@ApiQuery({
+    name:'endDate',
+    type:Date,
+    description:'search by order date',
+    required:false,
+})
+
+@ApiResponse({status:200,type:orderApiResponseDto,description: 'data fetch successfully',
+    schema:{
+        type:'object',
+        properties:{
+            data:{
+                type:'array',
+                items:{$ref:getSchemaPath('OrderResponseDto')}
+            },
+
+            total:{
+                type:'number',
+               
+            },
+            page:{
+                type:'number',
+               
+            },
+            limit:{
+                type:'number',
+               
+            },
+              
+        }
+    }
+})
+
+async findMyOrders(
+    @Query() QueryOrderDto
+){
+    return await this.ordersService.findMyOrders(query)
 }
 
+//user Get own orders
 
+@Get()
+@RelaxedThrottler()
+@ApiOperation({
+    summary:'[User] get my orders' ,
+    description:'get my orders',
+})
+
+@ApiResponse({
+    status:200,type:orderApiResponseDto,description: 'data fetch successfully',
+    schema:{
+        type:'object',
+        properties:{
+            data:{
+                type:'array',
+                items:{$ref:getSchemaPath('OrderResponseDto')}
+            },
+
+            total:{
+                type:'number',
+               
+            },
+            page:{
+                type:'number',
+               
+            },
+            limit:{
+                type:'number',
+               
+            },
+              
+        }
+    }
+})
+@ApiForbiddenResponse({ description: ' admin access required',})
+async getMyOrders(
+    @Query() QueryOrderDto
+){
+    return await this.ordersService.findMyOrders(query)
+}
 
 
 

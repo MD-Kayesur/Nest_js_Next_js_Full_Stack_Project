@@ -81,8 +81,52 @@ export class OrdersService {
         limit:number
     }>{
         const {page,limit,search,status,startDate,endDate} = query
+        const skip = (page - 1) * limit
+        const where:any={}
 
+        if(status){
+            where.status = status
+        }
+        if(search){
+            where.OR=[{id:{contains:search,mode:'insensitive'}},
+                {orderNumber:{contains:search,mode:'insensitive'}}]
+        }
+        
 
+        const [order,total] = await Promise.all([
+            this.prisma.order.findMany({
+                where,
+                skip,
+                take:limit,
+                include:{
+                    orderItems:{
+                        include:{
+                            product:true,
+                        },
+                    },
+                    user:{
+                        select:{
+                            id:true,
+                            email:true,
+                            firstName:true,
+                            lastName:true,
+                             
+                        }
+                    }
+                },
+           orderBy:{
+            createdAt:'desc'
+           }
+            }),
+            this.prisma.order.count({where})
+        ])
+return {
+    data:orders.map((order)=>this.map(order)),
+    total,
+    page,
+    limit,
+    success:true
+}
         
     }
 
