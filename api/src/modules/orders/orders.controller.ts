@@ -1,15 +1,16 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiTooManyRequestsResponse, getSchemaPath } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags, ApiTooManyRequestsResponse, getSchemaPath } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-orders.dto';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { ModerateThrottler, RelaxedThrottler } from 'src/common/decorators/custom-throttler.decorators';
-import { orderApiResponseDto, PaginatedResponseDto } from './dto/order-response.dto';
+import { orderApiResponseDto, OrderResponseDto, PaginatedResponseDto } from './dto/order-response.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorators';
 import { Roles } from 'src/common/decorators/roles.decorators';
 import { Role } from '@prisma/client';
 import { QueryOrderDto } from './dto/query-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @ApiTags('Orders')
 @ApiBearerAuth('JWT-auth')
@@ -256,7 +257,98 @@ async findAll(
 
 //Admin: Get order by id 
 
+@Get('admin/:id')
+@Roles(Role.ADMIN)
+@RelaxedThrottler()
+@ApiOperation({summary:'[ADMIN] Get order by id ' ,description:'get order by id',})
+@ApiParam({
+    name:'id',
+    type:String,
+    description:'order ID',
+    required:true,
+})
+@ApiOkResponse({type:orderApiResponseDto,description: 'order details fetch successfully',})
+
+@ApiNotFoundResponse({type:orderApiResponseDto,description: 'Order not found',})
+@ApiForbiddenResponse({ description: ' admin access required',})
+@ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
+@ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
+async findOneAdmin(
+    @Param('id') id:string ,
+    // @GetUser("id") userId: string
+){
+    return await this.ordersService.findOne(id)
+}
+
+
+
+
+
+
+
+//user : Get user own order by id 
+
 @Get(':id')
+@RelaxedThrottler()
+@ApiOperation({
+    summary:'Get user own order by id ' ,
+    description:'get my order by id',
+})
+@ApiParam({
+    name:'id',
+    type:String,
+    description:'order ID',
+    required:true,
+})
+@ApiOkResponse({
+     description:'order details   .',
+     type:orderApiResponseDto<OrderResponseDto>
+})
+@ApiNotFoundResponse({type:orderApiResponseDto,description: 'Order not found',})
+@ApiForbiddenResponse({ description: ' admin access required',})
+@ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
+@ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
+async findOne(
+    @Param('id') id:string ,@GetUser("id") userId: string
+){
+    return await this.ordersService.findOne(id,userId)
+}
+
+
+
+
+
+
+
+//ADMIN update order
+
+@Patch(':id')
+@Roles(Role.ADMIN)
+@RelaxedThrottler()
+@ApiOperation({
+    summary:'[ADMIN] Update order status ' ,
+    description:'update order status',
+})
+@ApiParam({
+    name:'id',
+    type:String,
+    description:'order ID',
+    required:true,
+})
+@ApiOkResponse({
+     description:'order details   .',
+     type:orderApiResponseDto<OrderResponseDto>
+})
+@ApiNotFoundResponse({type:orderApiResponseDto,description: 'Order not found',})
+@ApiForbiddenResponse({ description: ' admin access required',})
+@ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
+@ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
+async update(
+    @Param('id') id:string ,@Body() updateOrderDto: UpdateOrderDto,
+){
+    return await this.ordersService.update(id,updateOrderDto)
+}
+
 
 
 

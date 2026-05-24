@@ -187,6 +187,42 @@ async fingAll(userId: string, query: QueryOrderDto): Promise <{
 
 
 
+//find order by Id 
+async findOne(id:string,userId:string) :Promise<orderApiResponseDto<OrderResponseDto>>{
+    const where :any = {id}
+    if(userId){
+        where.userId = userId
+    }
+    const order = await this.prisma.order.findFirst({
+        where,
+        include:{
+            orderItems:{
+                include:{
+                    product:true,
+                },
+            },
+            user:true
+        }
+    })
+    if(!order){
+        throw new NotFoundException(`Order with ID ${id} not found`)
+    }
+    return this.warp(order)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     private warp(order:Order & {orderItems:(OrderItem & {product:Product})[]} , user?:User):orderApiResponseDto<OrderResponseDto>{
