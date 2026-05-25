@@ -376,12 +376,12 @@ async cancel(id:string,userId:string):Promise<orderApiResponseDto<OrderResponseD
                 userPhone:order.user.phone,
                 userAddress:order.user.address
             })
-            shippingCity: order.shippingCity,
-            shippingCountry: order.shippingCountry,
-            shippingZipCode: order.shippingZipCode,
-            shippingPhone: order.shippingPhone,
-            createdAt: order.createdAt,
-            updatedAt: order.updatedAt
+            // shippingCity: order.shippingCity,
+            // shippingCountry: order.shippingCountry,
+            // shippingZipCode: order.shippingZipCode,
+            // shippingPhone: order.shippingPhone,
+            // createdAt: order.createdAt,
+            // updatedAt: order.updatedAt
         }
     }
 
