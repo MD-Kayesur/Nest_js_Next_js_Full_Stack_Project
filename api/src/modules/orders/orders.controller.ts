@@ -347,14 +347,80 @@ async findOne(
 @ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
 @ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
 async updateAdmin(
-    @Param('id') id:string ,@Body() updateOrderDto: UpdateOrderDto,
+    @Param('id') id:string ,@Body() updateOrderDto: UpdateOrderDto,@GetUser("id") userId: string
 ){
-    return await this.ordersService.update(id,updateOrderDto)
+    return await this.ordersService.update(id,updateOrderDto,userId)
+}
+
+
+//admin delete an order
+@Delete(':id')
+@Roles(Role.ADMIN)
+@RelaxedThrottler()
+@ApiOperation({
+    summary:'[ADMIN] Delete an order ' ,
+    description:'delete order',
+})
+@ApiParam({
+    name:'id',
+    type:String,
+    description:'order ID',
+    required:true,
+})
+@ApiOkResponse({
+     description:'order deleted successfully  .',
+     type:orderApiResponseDto
+})
+@ApiNotFoundResponse({type:orderApiResponseDto,description: 'Order not found',})
+@ApiForbiddenResponse({ description: ' admin access required',})
+@ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
+@ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
+async deleteOrder(
+    @Param('id') id:string ,@GetUser("id") userId: string
+){
+    return await this.ordersService.delete(id,userId)
 }
 
 
 
 
+
+
+
+
+
+
+
+
+
+//ADMIN cancel an order
+
+
+@Patch(':id/cancel')
+@RelaxedThrottler()
+@ApiOperation({
+    summary:'[ADMIN] Cancel an order ' ,
+    description:'cancel order',
+})
+@ApiParam({
+    name:'id',
+    type:String,
+    description:'order ID',
+    required:true,
+})
+@ApiOkResponse({
+     description:'order cancelled successfully  .',
+     type:orderApiResponseDto
+})
+@ApiNotFoundResponse({type:orderApiResponseDto,description: 'Order not found',})
+@ApiForbiddenResponse({ description: ' admin access required',})
+@ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
+@ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
+async cancelOrder(
+    @Param('id') id:string ,@GetUser("id") userId: string
+){
+    return await this.ordersService.cancel(id,userId)
+}
 
 
 

@@ -245,6 +245,33 @@ async update(id:string,updateOrderDto:UpdateOrderDto):Promise<orderApiResponseDt
 
 
 
+//cancel order by admin 
+async cancel(id:string,userId:string):Promise<orderApiResponseDto<OrderResponseDto>>{
+    const where:any={id}
+    if(userId)where.userId = userId
+    const 
+    const order = await this.prisma.order.findUnique({
+        where,
+        include:{
+            orderItems:{
+                include:{
+                    product:true,
+                },
+            },
+            user:true
+        }
+    })
+    if(!order){
+        throw new NotFoundException(`Order with ID ${id} not found`)
+    }
+    return this.warp(await this.prisma.order.update({
+        where:{id},
+        data:{
+            status:OrderStatus.CANCELLED,
+            
+        }
+    }))
+}
 
 
 
