@@ -244,9 +244,8 @@ async update(id:string,updateOrderDto:UpdateOrderDto):Promise<orderApiResponseDt
 }
 
 
-
-//cancel order by admin 
-async cancel(id:string,userId:string):Promise<orderApiResponseDto<OrderResponseDto>>{
+//delete order by admin
+async delete(id:string,userId:string):Promise<orderApiResponseDto<OrderResponseDto>>{
     const where:any={id}
     if(userId)where.userId = userId
     const 
@@ -264,13 +263,74 @@ async cancel(id:string,userId:string):Promise<orderApiResponseDto<OrderResponseD
     if(!order){
         throw new NotFoundException(`Order with ID ${id} not found`)
     }
-    return this.warp(await this.prisma.order.update({
+    return this.warp(await this.prisma.order.delete({
         where:{id},
-        data:{
-            status:OrderStatus.CANCELLED,
-            
+        include:{
+            orderItems:{
+                include:{
+                    product:true,
+                },
+            },
+            user:true
         }
     }))
+} 
+
+
+
+                   
+
+//cancel order by admin 
+async cancel(id:string,userId:string):Promise<orderApiResponseDto<OrderResponseDto>>{
+    const where:any={id}
+    if(userId)where.userId = userId
+    const 
+    const order = await this.prisma.order.findFirst({
+        where,
+        include:{
+            orderItems: true,
+            user:true
+        }
+    })
+    if(!order){
+        throw new NotFoundException(`Order with ID ${id} not found`)
+    }
+    if(order.status === OrderStatus.CANCELLED){
+        throw new BadRequestException(`only pending order can be cancelled `)
+    }
+    const cancelled= await this.prisma.$transaction(async(tx)=>{
+//back to stock
+
+        for(const item of order.orderItems){
+            await tx.product.update({
+                where:{id:item.productId},
+                data:{
+                    stock:{
+                        increment:item.quantity,
+                    }
+                }
+            })
+        }
+//update order status
+        return tx.order.update({
+            where:{id},
+            data:{
+                status:OrderStatus.CANCELLED,
+            },
+            include:{
+                orderItems:{
+                    include:{
+                        product:true,
+                    },
+                },
+               user:true
+            }
+        })
+    })
+
+
+
+    return this.warp(cancelled)
 }
 
 

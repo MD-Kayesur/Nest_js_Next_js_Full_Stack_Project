@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags, ApiTooManyRequestsResponse, getSchemaPath } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-orders.dto';
 import { OrdersService } from './orders.service';
@@ -354,7 +354,7 @@ async updateAdmin(
 
 
 //admin delete an order
-@Delete(':id')
+@Delete('admin/:id')
 @Roles(Role.ADMIN)
 @RelaxedThrottler()
 @ApiOperation({
@@ -375,10 +375,10 @@ async updateAdmin(
 @ApiForbiddenResponse({ description: ' admin access required',})
 @ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
 @ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
-async deleteOrder(
+async cancelAdmin(
     @Param('id') id:string ,@GetUser("id") userId: string
 ){
-    return await this.ordersService.delete(id,userId)
+    return await this.ordersService.cancel(id,userId)
 }
 
 
