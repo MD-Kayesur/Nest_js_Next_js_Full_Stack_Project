@@ -445,33 +445,7 @@ async cancel(
 
 
 
-
-// @Patch(':id/cancel')
-// @RelaxedThrottler()
-// @ApiOperation({
-//     summary:'[ADMIN] Cancel an order ' ,
-//     description:'cancel order',
-// })
-// @ApiParam({
-//     name:'id',
-//     type:String,
-//     description:'order ID',
-//     required:true,
-// })
-// @ApiOkResponse({
-//      description:'order cancelled successfully  .',
-//      type:orderApiResponseDto
-// })
-// @ApiNotFoundResponse({type:orderApiResponseDto,description: 'Order not found',})
-// @ApiForbiddenResponse({ description: ' admin access required',})
-// @ApiBadRequestResponse({type:orderApiResponseDto,description: 'invalid data',})
-// @ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
-// async cancelOrder(
-//     @Param('id') id:string ,@GetUser("id") userId: string
-// ){
-//     return await this.ordersService.cancel(id,userId)
-// }
-
+ 
 
 
 
