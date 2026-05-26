@@ -104,22 +104,80 @@ updatedAt: Date
 
 }
 
-
-
-
 export class CreatePaymentIntentApiDto {
+     @ApiProperty({
+        description: 'Stripe client secret for payment',
+        example: 'pi_12345678901234567890123456789012',
+     })
+   clientSecret:string
+
+
+
+   @ApiProperty({
+       description: 'Stripe payment id in database',
+       example: '12345678901234567890123456789012',
+    })
+   paymentId:string
+}
+
+
+
+
+
+
+export class PaymentApiResponseDto {
 
  @ApiProperty({
     description: 'Payment intent session',
     example: 'succeeded',
  })
  success:boolean;
+
+ @ApiProperty({
+     type:paymentresponseDto
+ })
  
   data:paymentresponseDto
  
   
+ @ApiProperty({
+    description: 'Payment message',
+    example: 'Payment intent created successfully',
+    required:false
+  })
+  message?:string
 
 
+}
+
+
+
+
+
+
+
+
+export class CreatePaymentIntentApiResponseDto {
+
+ @ApiProperty({
+    description: 'Payment intent session',
+    example: 'succeeded',
+ })
+ success:boolean;
+
+ @ApiProperty({
+     type:CreatePaymentIntentResponse
+ })
+ 
+  data:CreatePaymentIntentResponse
+ 
+  
+ @ApiProperty({
+    description: 'Payment message',
+    example: 'Payment intent created successfully',
+    required:false
+  })
+  message?:string
 
 
 }
