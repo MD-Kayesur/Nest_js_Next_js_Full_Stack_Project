@@ -1,6 +1,6 @@
 # NestJS & Prisma Full-Stack Project: Developer Guide & Roadmap
 
-This document provides a high-level architectural overview, request flow guide, and roadmap of suggested new features with detailed implementation instructions.
+This document provides a high-level architectural overview, request flow guide, current build diagnostics, roadmap of suggested new features, and execution references.
 
 ---
 
@@ -61,7 +61,57 @@ sequenceDiagram
 
 ---
 
-## 3. Recommended New Features Roadmap
+## 3. Active Compilation Diagnostics (Current Errors)
+
+### Build Status
+Running `npm run build` inside the `api` folder currently fails with **111 TypeScript errors**. The codebase contains scoping issues, syntax typos, missing imports, and type mismatches.
+
+### Detailed Diagnostic of Broken Modules
+
+#### 📂 Payments Module (`api/src/modules/payments/`)
+
+* **Syntax Errors & Broken `try` Block in `payments.service.ts`**:
+  * **Incomplete try/catch**: The `createPaymentIntent` method opens a `try {` block, but the closing brace is not followed by a `catch` or `finally` block, causing compilation to break.
+  * **Typos & Missing Syntax**:
+    * `currencyk` is a syntax typo. It should be `currency` or `currency: currency`.
+    * Missing commas between object properties (e.g., between `paymentMethod: 'STRIPE'` and `transactionId`).
+    * `PaymentStaus` is used instead of the correct `PaymentStatus` enum.
+* **Misplaced Controller Code**:
+  * The service file contains controller decorators (`@Get(':id')`, `@ApiParam`, etc.) and route handler logic which belong in `payments.controller.ts`.
+* **Bracket Closure Mismatches (Class Scoping)**:
+  * The `PaymentsService` class block is closed early. As a result, methods like `findOne`, `findByOrder`, and `mapTopaymentresponseDto` are defined as plain functions outside the class scope.
+* **Polluted Controller Layer (`payments.controller.ts`)**:
+  * A duplicate, helper-less version of `confirmPaymentIntent` is defined inside `PaymentsController`, attempting to access database resources directly (`this.prisma`, `this.stripe`) which are not injected.
+
+#### 📂 Products Module (`api/src/modules/products/`)
+
+* **Missing Imports in `products.controller.ts`**:
+  * The `Param` decorator is not imported from `@nestjs/common`.
+  * `UpdateProductDto` is referenced but never imported from `./dto/update-product.dto`.
+* **DTO Property & Validation Mismatches**:
+  * **Missing Properties**: `products.service.ts` destructures `sortBy`, `sortOrder`, `minPrice`, and `maxPrice` from `QueryProductDto`, but these fields do not exist in the DTO schema.
+  * **Transform Logic Error**: The `@Transform` decorator in `QueryProductDto` compares the parameter directly to a string/boolean (`value === 'true'`), which always evaluates to false because it receives a `TransformFnParams` object. It should destructure the value: `@Transform(({ value }) => ... )`.
+  * **Schema Mismatches**: The schema defines `sku` as a unique, required field on the `Product` model, but `CreateProductDto` defines it as optional (`sku?: string`), which throws type assignment errors inside the `prisma.product.create` method.
+
+### Step-by-Step Guide to Resolving Build Errors
+
+1. **Clean up `payments.service.ts`**:
+   * Move the `@Get(':id')` controller route handler from the service file into `payments.controller.ts`.
+   * Fix the early class-closing curly brace to bring the standalone methods back inside the `PaymentsService` class.
+   * Correct the typos: change `PaymentStaus` to `PaymentStatus`, change `currencyk` to `currency`, and add missing commas.
+   * Add a proper `catch` block to the `try` block in `createPaymentIntent`.
+2. **Clean up `payments.controller.ts`**:
+   * Delete the inline database logic in `confirmPaymentIntent` and delegate all processing logic to `PaymentsService`.
+3. **Resolve Products Controller Imports**:
+   * Add `Param` to the imports from `@nestjs/common` in `products.controller.ts`.
+   * Add `import { UpdateProductDto } from './dto/update-product.dto';` to `products.controller.ts`.
+4. **Align Product DTOs**:
+   * Update `QueryProductDto` to include the sorting and filtering fields (`sortBy`, `sortOrder`, `minPrice`, `maxPrice`).
+   * Fix the `@Transform` arguments in `query-product.dto.ts`.
+
+---
+
+## 4. Recommended New Features Roadmap
 
 Here are the suggested features to build next to complete the e-commerce engine, along with detailed implementation instructions.
 
@@ -159,7 +209,7 @@ To provide standardized error payloads for frontend integrations, implement a gl
 
 ---
 
-## 4. Local Execution Reference
+## 5. Local Execution Reference
 
 To run migrations and start the environment locally:
 
