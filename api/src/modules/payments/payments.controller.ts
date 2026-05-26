@@ -1,13 +1,14 @@
 import { BadRequestException, Body, Controller, NotFoundException, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { orderApiResponseDto } from '../orders/dto/order-response.dto';
-import { CreatePaymentIntentApiDto } from './dto/payment-response.dto';
+import { CreatePaymentIntentApiDto, PaymentApiResponseDto } from './dto/payment-response.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorators';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
+import { get } from 'http';
 
 @Controller('payments')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -136,7 +137,21 @@ return {
 }
 
 
+@Get()
+@ApiOperation({ summary: 'get all paypments', description: 'get all paypments', })
+@ApiOkResponse({ 
+    status: 200, 
+    type: PaymentApiResponseDto, 
+    description: 'get all paypments successfully', })
 
+    @ApiBadRequestResponse({
+        description:'get all paypments faild'
+        
+    })
+
+async findAll(@GetUser('id') userId:string) {
+    return await this.paymentsService.findAll(userId);
+}
 
 
 

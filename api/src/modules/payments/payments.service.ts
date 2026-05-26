@@ -87,6 +87,19 @@ return {
 
  
 
+//get all payment for current user
+async findAll(userId: string) {
+  return await this.prisma.payment.findMany({
+    where:{
+      userId
+    }
+  })
+}
+
+
+
+
+
 
 private mapTopaymentresponseDto(payment:{
     id:string,
@@ -105,7 +118,7 @@ private mapTopaymentresponseDto(payment:{
       id:payment.id,
       orderId:payment.orderId,
       userId:payment.userId,
-      amount:payment.amount,
+      amount:payment.amount.toNumber(),
       currency:payment.currency,
       description:payment.description,
       status:payment.status,
