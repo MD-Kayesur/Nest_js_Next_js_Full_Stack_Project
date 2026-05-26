@@ -1,7 +1,7 @@
-import { BadRequestException, Body, Controller, NotFoundException, Post, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { orderApiResponseDto } from '../orders/dto/order-response.dto';
 import { CreatePaymentIntentApiDto, PaymentApiResponseDto } from './dto/payment-response.dto';
@@ -151,6 +151,38 @@ return {
 
 async findAll(@GetUser('id') userId:string) {
     return await this.paymentsService.findAll(userId);
+}
+
+
+
+
+//get payment by order id
+
+@Get('order/:orderId')
+@ApiParam({
+    name: 'orderId',
+    required: true,
+    description: 'Order id',
+    example: '1233ea2d-2a5f-4f3a-9b7a-8d2c4b6e7f0d'
+})
+@ApiOperation({ summary: 'get payment by order id', description: 'get payment by order id', })
+@ApiOkResponse({ 
+    status: 200, 
+    type: PaymentApiResponseDto, 
+    description: 'get payment by order id successfully', })
+
+@ApiNotFoundResponse({
+    status: 404,
+    description: 'Payment not found',
+})
+
+    @ApiBadRequestResponse({
+        description:'get payment by order id faild'
+        
+    })
+
+async findByOrder(@Param('orderId') orderId:string,@GetUser('id') userId:string) {
+    return await this.paymentsService.findByOrder(orderId,userId);
 }
 
 

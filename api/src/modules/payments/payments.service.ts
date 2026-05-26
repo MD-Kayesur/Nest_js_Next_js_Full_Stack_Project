@@ -1,10 +1,11 @@
-import { BadRequestException, Get, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Get, Injectable, NotFoundException, Param } from '@nestjs/common';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import Stripe from 'stripe';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Payment } from '@prisma/client';
 import { paymentresponseDto } from './dto/payment-response.dto';
-import { ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiNotFoundResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { GetUser } from 'src/common/decorators/get-user.decorators';
 
 @Injectable()
 export class PaymentsService {
@@ -125,30 +126,56 @@ async findAll(userId: string) : Promise<{success:true,data:paymentresponseDto[],
   description: 'Payment retrieved successfully',
 })
 
+@ApiNotFoundResponse({
+  status: 404,
+  description: 'Payment not found',
+})
+
 async findOne(@Param("id") id:string,@GetUser('id') userId:string){
-    const payment=await this.prisma.payment.findFirst({
-        where:{
-            id,
-            userId
-        }
-    })
-    if(!payment){
-        throw new NotFoundException(`Payment with ID ${id} not found`);
-    }
-    return {
-        success:true,
-        data:this.mapTopaymentresponseDto(payment),
-        message:'Payment retrievied successfully'
-    }
-}
+   return await this.paymentsService.findOne(id,userId);
 
    
 }
+}
+
+// Get payment by id 
+async findOne(@Param("id") id:string,@GetUser('id') userId:string):Promise<{success:true,data:paymentresponseDto,message?:string}>{
+   const payment=await this.prisma.payment.findFirst({
+    where:{
+      id,
+      userId
+    }
+   })
+   if(!payment){
+    throw new NotFoundException(`Payment with ID ${id} not found`);
+   }
+   return {
+    success:true,
+    data:this.mapTopaymentresponseDto(payment),
+    message:'Payment retrievied successfully'
+   }
+}
 
 
 
+//get payment by order id
 
-
+async findByOrder(@Param('orderId') orderId:string,@GetUser('id') userId:string):Promise<{success:true,data:paymentresponseDto,message?:string}>{
+   const payment=await this.prisma.payment.findFirst({
+    where:{
+      orderId,
+      userId
+    }
+   })
+   if(!payment){
+    throw new NotFoundException(`Payment with ID ${orderId} not found`);
+   }
+   return {
+    success:true,
+    data:payment ? this.mapTopaymentresponseDto(payment):null,
+    message:'Payment retrievied successfully'
+   }
+}
 
 private mapTopaymentresponseDto(payment:{
     id:string,
