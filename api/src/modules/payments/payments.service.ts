@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Get, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import Stripe from 'stripe';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Payment } from '@prisma/client';
 import { paymentresponseDto } from './dto/payment-response.dto';
+import { ApiOperation, ApiParam } from '@nestjs/swagger';
 
 @Injectable()
 export class PaymentsService {
@@ -88,12 +89,60 @@ return {
  
 
 //get all payment for current user
-async findAll(userId: string) {
-  return await this.prisma.payment.findMany({
+async findAll(userId: string) : Promise<{success:true,data:paymentresponseDto[],message?:string}>{
+   const payments=await this.prisma.payment.findMany({
     where:{
       userId
+    },
+    orderBy:{
+      createdAt:'desc'
     }
-  })
+   })
+
+   return {
+    success:true,
+    data:payments.map(payment=>this.mapTopaymentresponseDto(payment)),
+    message:'Payments retrievied successfully',
+   }
+
+
+
+@Get(":id")
+@ApiParam({
+    name:"id",
+    required:true,
+    description:"Payment id",
+    example:"1233ea2d-2a5f-4f3a-9b7a-8d2c4b6e7f0d"
+})
+@ApiOperation({
+  summary: "get payment by id",
+  description: "get payment by id",
+})
+
+@ApiOkResponse({
+  status: 200,
+  type: paymentresponseDto,
+  description: 'Payment retrieved successfully',
+})
+
+async findOne(@Param("id") id:string,@GetUser('id') userId:string){
+    const payment=await this.prisma.payment.findFirst({
+        where:{
+            id,
+            userId
+        }
+    })
+    if(!payment){
+        throw new NotFoundException(`Payment with ID ${id} not found`);
+    }
+    return {
+        success:true,
+        data:this.mapTopaymentresponseDto(payment),
+        message:'Payment retrievied successfully'
+    }
+}
+
+   
 }
 
 
