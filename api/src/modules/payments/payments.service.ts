@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import Stripe from 'stripe';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Payment } from '@prisma/client';
+import { paymentresponseDto } from './dto/payment-response.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -13,6 +15,10 @@ export class PaymentsService {
         });
     }
 
+
+
+
+    //create payment intent
     createPaymentIntent(createPaymentIntentDto: CreatePaymentIntentDto, userId: string):Promise<{success:boolean,data:{clientSecret:string,paymentId:string},message?:string}> {
       try {
         const {orderId,amount,currency,description}=createPaymentIntentDto
@@ -80,4 +86,39 @@ return {
     }
 
  
+
+
+private mapTopaymentresponseDto(payment:{
+    id:string,
+        orderId:string,
+        userId:string,
+        amount: Prisma.Decimal,
+        currency:string,
+        description:string,
+        status:PaymentStaus,
+        paymentMethod: string|null,
+        transactionId:string|null,
+        createdAt:Date,
+        updatedAt:Date
+}):paymentresponseDto{
+     return{
+      id:payment.id,
+      orderId:payment.orderId,
+      userId:payment.userId,
+      amount:payment.amount,
+      currency:payment.currency,
+      description:payment.description,
+      status:payment.status,
+      paymentMethod:payment.paymentMethod,
+      transactionId:payment.transactionId,
+      createdAt:payment.createdAt,
+      updatedAt:payment.updatedAt
+     }
+}
+
+
+
+
+
+
 }
