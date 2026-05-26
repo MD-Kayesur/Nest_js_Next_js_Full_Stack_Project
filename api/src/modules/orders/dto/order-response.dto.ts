@@ -201,6 +201,20 @@ export class  OrderResponseDto {
         example: '2022-01-01',
     })
     updatedAt: Date;
+
+    @ApiProperty({
+        description: 'Tracking number',
+        example: 'TRK123456',
+        required: false,
+    })
+    trakingNumber?: string;
+
+    @ApiProperty({
+        description: 'Order notes',
+        example: 'Deliver after 5 PM',
+        required: false,
+    })
+    notes?: string;
 }
 
 
@@ -324,6 +338,20 @@ export class UserSpecificOrderResponseDto {
         example: '2022-01-01',
     })
     updatedAt: Date;
+
+    @ApiProperty({
+        description: 'Tracking number',
+        example: 'TRK123456',
+        required: false,
+    })
+    trakingNumber?: string;
+
+    @ApiProperty({
+        description: 'Order notes',
+        example: 'Deliver after 5 PM',
+        required: false,
+    })
+    notes?: string;
 }
 
 

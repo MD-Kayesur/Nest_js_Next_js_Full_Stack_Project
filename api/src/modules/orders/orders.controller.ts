@@ -29,7 +29,7 @@ export class OrdersController {
     @ApiNotFoundResponse({type:orderApiResponseDto,description: 'cart not found or empty',})
     @ApiTooManyRequestsResponse({type:orderApiResponseDto,description: 'Too many requests- rate limit exceeded',})
     async create(@Body() createOrderDto: CreateOrderDto, @GetUser("id") userId: string) {
-        return this.ordersService.createOrder(userId, createOrderDto);
+        return this.ordersService.create(userId, createOrderDto);
     }
 
 
@@ -109,7 +109,7 @@ export class OrdersController {
 
 @ApiForbiddenResponse({ description: ' admin access required',})
 async findAllForAdmin(
-    @Query() QueryOrderDto
+    @Query() query: QueryOrderDto
 ){
     return await this.ordersService.findAllForAdmin(query)
 }
@@ -186,9 +186,9 @@ async findAllForAdmin(
 })
 
 async findMyOrders(
-    @Query() QueryOrderDto
+    @Query() query: QueryOrderDto, @GetUser("id") userId: string
 ){
-    return await this.ordersService.findMyOrders(query)
+    return await this.ordersService.findAll(userId, query)
 }
 
 

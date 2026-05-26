@@ -1,183 +1,126 @@
-//payment response dto
-
 import { ApiProperty } from "@nestjs/swagger";
 
-
-export class paymentresponseDto{
- 
-    
+export class paymentresponseDto {
   @ApiProperty({
     description: 'Payment id',
     example: '1233ea2d-2a5f-4f3a-9b7a-8d2c4b6e7f0d',
- })
- id:string
- 
- @ApiProperty({
+  })
+  id: string;
+
+  @ApiProperty({
     description: 'order id',
     example: '1233ea2d-2a5f-4f3a-9b7a-8d2c4b6e7f0d',
- })
- orderId:string
+  })
+  orderId: string;
 
- 
- @ApiProperty({
+  @ApiProperty({
     description: 'Payment amount',
     example: '100',
- })
- amount:number
+  })
+  amount: number;
 
- @ApiProperty({
-    description: 'Payment currency',
-    example: 'BDT',
- })
- currency:string
-
- 
- @ApiProperty({
-    description: 'Payment status',
-    example: 'pending',
- })
- status:string
-
-
-@ApiProperty({
+  @ApiProperty({
     description: 'User id',
     example: '1233ea2d-2a5f-4f3a-9b7a-8d2c4b6e7f0d',
- })
-userId: string
+  })
+  userId: string;
 
- 
-
-@ApiProperty({
+  @ApiProperty({
     description: 'Payment currency (USD or BDT)',
     example: 'USD',
- })
-currency: string
+  })
+  currency: string;
 
-
-
-
-
-@ApiProperty({
-    description: 'Payment status (success,faild,pending)',
+  @ApiProperty({
+    description: 'Payment status (success,failed,pending)',
     example: 'COMPLETED',
-    enum:['COMPLETED','FAILED','PENDING','CANCELLED','FAILED']
- })
-status:string
+    enum: ['COMPLETED', 'FAILED', 'PENDING', 'CANCELLED']
+  })
+  status: string;
 
-
-
-
-@ApiProperty({
+  @ApiProperty({
     description: 'STRIPE',
-    nullable:true,
-    
- })
-paymentMethod:string|null
+    nullable: true,
+  })
+  paymentMethod: string | null;
 
+  @ApiProperty({
+    description: 'Payment description',
+    example: 'Order payment',
+    required: false,
+  })
+  description?: string;
 
-
-@ApiProperty({
+  @ApiProperty({
     description: 'Transaction id',
-    nullable:true,
+    nullable: true,
     example: 'ID_343453',
-})
-transactionId:string|null
+  })
+  transactionId: string | null;
 
-
-
-
-
-@ApiProperty({
+  @ApiProperty({
     description: 'Payment create date',
     example: '2022-01-01',
- })
-createdAt: Date
+  })
+  createdAt: Date;
 
-
-@ApiProperty({
+  @ApiProperty({
     description: 'Payment update date',
     example: '2022-01-01',
- })
-updatedAt: Date
-
-
-
+  })
+  updatedAt: Date;
 }
 
 export class CreatePaymentIntentApiDto {
-     @ApiProperty({
-        description: 'Stripe client secret for payment',
-        example: 'pi_12345678901234567890123456789012',
-     })
-   clientSecret:string
+  @ApiProperty({
+    description: 'Stripe client secret for payment',
+    example: 'pi_12345678901234567890123456789012',
+  })
+  clientSecret: string;
 
-
-
-   @ApiProperty({
-       description: 'Stripe payment id in database',
-       example: '12345678901234567890123456789012',
-    })
-   paymentId:string
+  @ApiProperty({
+    description: 'Stripe payment id in database',
+    example: '12345678901234567890123456789012',
+  })
+  paymentId: string;
 }
-
-
-
-
-
 
 export class PaymentApiResponseDto {
-
- @ApiProperty({
+  @ApiProperty({
     description: 'Payment intent session',
     example: 'succeeded',
- })
- success:boolean;
+  })
+  success: boolean;
 
- @ApiProperty({
-     type:paymentresponseDto
- })
- 
-  data:paymentresponseDto
- 
-  
- @ApiProperty({
+  @ApiProperty({
+    type: paymentresponseDto
+  })
+  data: paymentresponseDto;
+
+  @ApiProperty({
     description: 'Payment message',
     example: 'Payment intent created successfully',
-    required:false
+    required: false
   })
-  message?:string
-
-
+  message?: string;
 }
 
-
-
-
-
-
-
-
 export class CreatePaymentIntentApiResponseDto {
-
- @ApiProperty({
+  @ApiProperty({
     description: 'Payment intent session',
     example: 'succeeded',
- })
- success:boolean;
+  })
+  success: boolean;
 
- @ApiProperty({
-     type:CreatePaymentIntentResponse
- })
- 
-  data:CreatePaymentIntentResponse
- 
-  
- @ApiProperty({
+  @ApiProperty({
+    type: CreatePaymentIntentApiDto
+  })
+  data: CreatePaymentIntentApiDto;
+
+  @ApiProperty({
     description: 'Payment message',
     example: 'Payment intent created successfully',
-    required:false
+    required: false
   })
-  message?:string
-
-
+  message?: string;
 }

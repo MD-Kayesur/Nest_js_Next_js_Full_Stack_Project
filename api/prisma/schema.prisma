@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
 }
 
 datasource db {
@@ -121,6 +122,8 @@ model Order {
   cartId          String?
   cart            Cart?       @relation(fields: [cartId], references: [id])
   shippingAddress String?
+  trakingNumber   String?
+  notes           String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -158,6 +161,7 @@ model Payment {
   amount        Decimal       @db.Decimal(10, 2)
   status        PaymentStatus @default(PENDING)
   currency      String        @default("USD")
+  description   String?
   paymentMethod String?
   transactionId String?       @unique
   orderId       String

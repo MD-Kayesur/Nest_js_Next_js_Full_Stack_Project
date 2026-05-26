@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-products.dto';
@@ -9,6 +9,7 @@ import { Roles } from 'src/common/decorators/roles.decorators';
 import { Role } from '@prisma/client';
 import { QueryCategoryDto } from '../category/dto/query-category.dto';
 import { QueryProductDto } from './dto/query-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @ApiTags('products')
 @Controller('products')
