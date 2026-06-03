@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getCookie, setCookie, removeCookie } from "../../../utils/cookies";
+import Cookies from "js-cookie";
+
+const COOKIE_NAME = process.env.NEXT_PUBLIC_COOKIE_NAME || "access_token";
 
 interface AuthState {
   token: string | null;
@@ -17,7 +19,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  token: typeof window !== "undefined" ? getCookie("access_token") : null,
+  token: typeof window !== "undefined" ? Cookies.get(COOKIE_NAME) || null : null,
   user: null,
 };
 
@@ -32,14 +34,14 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.user = action.payload.user;
       if (typeof window !== "undefined") {
-        setCookie("access_token", action.payload.token, 7); // Set token cookie for 7 days
+        Cookies.set(COOKIE_NAME, action.payload.token, { expires: 7, secure: true, sameSite: "lax" });
       }
     },
     logoutUser: (state) => {
       state.token = null;
       state.user = null;
       if (typeof window !== "undefined") {
-        removeCookie("access_token");
+        Cookies.remove(COOKIE_NAME);
       }
     },
   },
