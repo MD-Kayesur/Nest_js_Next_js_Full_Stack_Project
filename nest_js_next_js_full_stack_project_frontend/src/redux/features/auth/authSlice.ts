@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
+import { authApi } from "./authApi";
 
 const COOKIE_NAME = process.env.NEXT_PUBLIC_COOKIE_NAME || "access_token";
 
@@ -44,6 +45,14 @@ const authSlice = createSlice({
         Cookies.remove(COOKIE_NAME);
       }
     },
+  },
+  extraReducers: (builder) => {
+    builder.addMatcher(
+      authApi.endpoints.getMe.matchFulfilled,
+      (state, action) => {
+        state.user = action.payload;
+      }
+    );
   },
 });
 
