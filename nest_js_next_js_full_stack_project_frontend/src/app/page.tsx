@@ -18,6 +18,14 @@ import {
   CheckCircle,
   Loader2,
   Key,
+  Layers,
+  Cpu,
+  Database,
+  Server,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ArrowRight,
 } from "lucide-react";
 import { useGetMeQuery, useLogoutMutation } from "../redux/features/auth/authApi";
 import { logoutUser } from "../redux/features/auth/authSlice";
@@ -27,6 +35,14 @@ import {
   useGetAllUsersQuery,
   useDeleteUserByIdMutation,
 } from "../redux/features/user/userApi";
+
+import { Header } from "../components/landing/Header";
+import { Hero } from "../components/landing/Hero";
+import { Features } from "../components/landing/Features";
+import { Architecture } from "../components/landing/Architecture";
+import { Faq } from "../components/landing/Faq";
+import { Cta } from "../components/landing/Cta";
+import { Footer } from "../components/landing/Footer";
 
 export default function Home() {
   const router = useRouter();
@@ -80,65 +96,21 @@ export default function Home() {
 // 1. Guest Landing View
 // -------------------------------------------------------------
 function GuestView() {
-  const router = useRouter();
-
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white selection:bg-zinc-800">
-      {/* Header */}
-      <header className="max-w-7xl mx-auto w-full px-6 py-6 flex items-center justify-between z-10">
-        <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <Shield className="w-6 h-6 text-white" />
-          <span>CorePortal</span>
-        </div>
-        <div className="flex gap-4">
-          <button
-            onClick={() => router.push("/login")}
-            className="px-4 py-2 text-sm font-semibold hover:text-zinc-300 transition-colors"
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => router.push("/signup")}
-            className="px-4 py-2 bg-white text-black text-sm font-semibold rounded-full hover:bg-zinc-200 transition-all"
-          >
-            Sign Up
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col bg-zinc-950 text-white selection:bg-zinc-800 scroll-smooth">
+      {/* Dynamic Ambient Background Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px]" />
+      </div>
 
-      {/* Hero */}
-      <main className="max-w-4xl mx-auto text-center px-6 py-20 flex flex-col items-center justify-center flex-1">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/60 text-zinc-400 text-xs mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          API Integrations Configured
-        </div>
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent leading-none">
-          Unified Authentication & User Operations
-        </h1>
-        <p className="mt-6 text-lg text-zinc-400 max-w-xl">
-          A secure, high-performance platform managing user identities and role access using Redux Toolkit Query and NestJS.
-        </p>
-
-        <div className="mt-10 flex flex-col sm:flex-row gap-4">
-          <button
-            onClick={() => router.push("/signup")}
-            className="px-8 py-4 bg-white text-black font-semibold rounded-2xl hover:bg-zinc-200 transition-all shadow-xl hover:shadow-white/5 active:scale-[0.98]"
-          >
-            Get Started Free
-          </button>
-          <button
-            onClick={() => router.push("/login")}
-            className="px-8 py-4 border border-zinc-800 hover:border-zinc-700 bg-zinc-900/30 rounded-2xl font-semibold transition-all hover:bg-zinc-900/50"
-          >
-            Access Dashboard
-          </button>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-500">
-        &copy; {new Date().getFullYear()} CorePortal. All rights reserved.
-      </footer>
+      <Header />
+      <Hero />
+      <Features />
+      <Architecture />
+      <Faq />
+      <Cta />
+      <Footer />
     </div>
   );
 }

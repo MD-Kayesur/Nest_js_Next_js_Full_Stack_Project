@@ -1,0 +1,36 @@
+"use client";
+
+import React from "react";
+import { Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+export function Header() {
+  const router = useRouter();
+  return (
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-zinc-950/60 border-b border-zinc-900/80">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div 
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer hover:opacity-90 active:scale-95 transition-all"
+        >
+          <Shield className="w-6 h-6 text-emerald-400 animate-pulse" />
+          <span>CorePortal</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/login")}
+            className="px-4 py-2 text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => router.push("/signup")}
+            className="px-5 py-2 bg-white text-black text-sm font-semibold rounded-full hover:bg-zinc-200 hover:scale-[1.03] transition-all shadow-md shadow-white/5 active:scale-95"
+          >
+            Sign Up
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}

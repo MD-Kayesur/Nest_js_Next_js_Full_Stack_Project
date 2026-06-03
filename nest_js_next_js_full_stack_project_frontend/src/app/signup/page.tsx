@@ -7,6 +7,7 @@ import { Mail, Lock, User, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react
 import Lottie from "lottie-react";
 import { useRegisterMutation } from "../../redux/features/auth/authApi";
 import { setCredentials } from "../../redux/features/auth/authSlice";
+import { Header } from "../../components/landing/Header";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -67,14 +68,17 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white selection:bg-zinc-800">
-      {/* Ambient Glows */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-zinc-850/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-zinc-700/10 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white selection:bg-zinc-800">
+      <Header />
+      
+      <div className="flex-grow flex items-center justify-center p-4 relative">
+        {/* Ambient Glows */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-zinc-850/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-zinc-700/10 rounded-full blur-3xl" />
+        </div>
 
-      <div className="relative w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-xl p-8 rounded-3xl shadow-2xl">
+        <div className="relative w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-xl p-8 rounded-3xl shadow-2xl">
         {/* Left Side: Animations & Info */}
         <div className="hidden md:flex flex-col items-center justify-center p-4">
           <div className="w-80 h-80 flex items-center justify-center">
@@ -246,5 +250,6 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
