@@ -28,22 +28,35 @@ export class QueryCategoryDto  {
 
 
 @ApiPropertyOptional({
-        example: '1',
-        description: 'Category search',
-        
-        default:1,
-        minimum:1
+        example: 10,
+        description: 'Limit',
+        default: 10,
+        minimum: 1
     })
-    @IsString()
-    @Type(()=>Number )
+    @Type(()=>Number)
     @IsOptional()
-@IsNumber()
-@Min(1)
-@IsOptional()
-limit?:number;
-page?:number;
+    @IsNumber()
+    @Min(1)
+    limit?:number;
 
+    @ApiPropertyOptional({
+        example: 1,
+        description: 'Page',
+        default: 1,
+        minimum: 1
+    })
+    @Type(()=>Number)
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    page?:number;
 
+    @ApiPropertyOptional({
+        example: 'electronics',
+        description: 'Search string',
+    })
+    @IsOptional()
+    @IsString()
     search?:string;
 
 
