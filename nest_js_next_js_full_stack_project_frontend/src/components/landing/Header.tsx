@@ -20,6 +20,12 @@ export function Header() {
           <span>CorePortal</span>
         </div>
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/products")}
+            className="px-4 py-2 text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
+          >
+            Products
+          </button>
           {token ? (
             <button
               onClick={() => router.push("/?view=dashboard")}
