@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards, Delete } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-products.dto';
@@ -184,10 +184,34 @@ async update (@Param('id') id:string, @Body() updateProductDto:UpdateProductDto)
     return await this.productsService.update(id,updateProductDto);
 }
 
-
-
-
-
-
+@Delete(':id')
+@UseGuards(AuthGuard(),RolesGuard)
+@Roles(Role.ADMIN)
+@ApiBearerAuth('JWT-auth')
+@ApiOperation({summary:'Delete a product'})
+@ApiResponse({
+    status:200,
+    description:'Product deleted successfully',
+})
+@ApiResponse({
+    status:401,
+    description:'Unauthorized',
+})
+@ApiResponse({
+    status:403,
+    description:'Forbidden_ Admin role required',
+})
+@ApiResponse({
+    status:404,
+    description:'Product not found',
+})
+@ApiResponse({
+    status:500,
+    description:'Internal server error',
+})
+@HttpCode(HttpStatus.OK)
+async remove(@Param('id') id:string):Promise<{message:string}>{
+    return await this.productsService.remove(id);
+}
 
 }

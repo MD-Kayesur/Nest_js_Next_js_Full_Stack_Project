@@ -140,6 +140,22 @@ export class ProductsService {
         return this.formateProduct(updated as any);
     }
 
+    // delete product
+    async remove(id: string): Promise<{ message: string }> {
+        const product = await this.prisma.product.findUnique({
+            where: { id }
+        });
+        if (!product) {
+            throw new NotFoundException(`Product with ID "${id}" not found`);
+        }
+
+        await this.prisma.product.delete({
+            where: { id }
+        });
+
+        return { message: 'Product deleted successfully' };
+    }
+
     private formateProduct(product: Product & { category: Category }): ProductResponseDto {
         return {
             id: product.id,

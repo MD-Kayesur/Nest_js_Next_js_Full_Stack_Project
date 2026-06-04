@@ -10,11 +10,15 @@ import {
   Loader2,
   Trash2,
   Home as HomeIcon,
+  Package,
+  Tags,
 } from "lucide-react";
 import {
   useGetAllUsersQuery,
   useDeleteUserByIdMutation,
 } from "../../redux/features/user/userApi";
+import { ProductManagement } from "./ProductManagement";
+import { CategoryManagement } from "./CategoryManagement";
 
 interface DashboardProps {
   currentUser: any;
@@ -26,6 +30,7 @@ export function AdminDashboard({ currentUser, onSignOut }: DashboardProps) {
   const { data: users, isLoading: isLoadingUsers, refetch } = useGetAllUsersQuery(undefined);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserByIdMutation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"users" | "products" | "categories">("users");
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this user profile?")) {
@@ -78,7 +83,44 @@ export function AdminDashboard({ currentUser, onSignOut }: DashboardProps) {
           </button>
         </header>
 
-        {/* Directory Layout */}
+        {/* Tabs */}
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "users"
+                ? "bg-zinc-100 text-zinc-900"
+                : "bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800"
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            User Management
+          </button>
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "products"
+                ? "bg-zinc-100 text-zinc-900"
+                : "bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800"
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            Product Management
+          </button>
+          <button
+            onClick={() => setActiveTab("categories")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "categories"
+                ? "bg-zinc-100 text-zinc-900"
+                : "bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800"
+            }`}
+          >
+            <Tags className="w-4 h-4" />
+            Category Management
+          </button>
+        </div>
+
+        {activeTab === "users" ? (
         <div className="bg-zinc-900/40 border border-zinc-800/50 backdrop-blur rounded-3xl p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -171,6 +213,11 @@ export function AdminDashboard({ currentUser, onSignOut }: DashboardProps) {
             )}
           </div>
         </div>
+        ) : activeTab === "products" ? (
+          <ProductManagement />
+        ) : (
+          <CategoryManagement />
+        )}
       </div>
     </div>
   );
