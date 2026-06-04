@@ -18,7 +18,7 @@ export class ProductsController {
 
     @Post()
     @Roles(Role.ADMIN)
-    @UseGuards(AuthGuard(),RolesGuard)
+    @UseGuards(AuthGuard('jwt'),RolesGuard)
     @ApiBearerAuth('JWT-auth')
     @ApiOperation({summary:'Create product'})
     @ApiBody({
@@ -142,7 +142,7 @@ async findOne (@Param('id') id:string):Promise<ProductResponseDto>{
 //update a product
 
 @Patch(':id')
-@UseGuards(AuthGuard(),RolesGuard)
+@UseGuards(AuthGuard('jwt'),RolesGuard)
 @Roles(Role.ADMIN)
 @ApiBearerAuth('JWT-auth')
 @ApiOperation({summary:'Update a product'})
@@ -185,7 +185,7 @@ async update (@Param('id') id:string, @Body() updateProductDto:UpdateProductDto)
 }
 
 @Delete(':id')
-@UseGuards(AuthGuard(),RolesGuard)
+@UseGuards(AuthGuard('jwt'),RolesGuard)
 @Roles(Role.ADMIN)
 @ApiBearerAuth('JWT-auth')
 @ApiOperation({summary:'Delete a product'})

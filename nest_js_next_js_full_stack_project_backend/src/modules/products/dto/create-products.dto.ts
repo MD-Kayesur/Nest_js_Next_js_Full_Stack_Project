@@ -40,7 +40,7 @@ export class CreateProductDto {
         maxDecimalPlaces:2
     })
     @IsNotEmpty()
-    @Min(1)
+    @Min(0)
     @Type(()=>Number)
     price: number;
 
