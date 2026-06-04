@@ -212,7 +212,9 @@ throw new NotFoundException("Category not found");
 }
  
 if(existingCategory._count.products>0){
-  throw new BadRequestException("Category has products");
+  await this.prisma.product.deleteMany({
+    where: { categoryId: id }
+  });
 }
 
     await this.prisma.category.delete({
