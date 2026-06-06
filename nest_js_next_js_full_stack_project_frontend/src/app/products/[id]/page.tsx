@@ -3,7 +3,9 @@
 import React, { use } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, Package, Check, ShoppingCart, Shield } from "lucide-react";
+import { useSelector } from "react-redux";
 import { useGetProductByIdQuery } from "../../../redux/features/product/productApi";
+import { useAddToCartMutation } from "../../../redux/features/cart/cartApi";
 import { Header } from "../../../components/landing/Header";
 import { Footer } from "../../../components/landing/Footer";
 
@@ -14,8 +16,25 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
   const resolvedParams = use(params);
   const id = resolvedParams.id;
 
+  const token = useSelector((state: any) => state.auth.token);
   const { data, isLoading, isError } = useGetProductByIdQuery(id);
+  const [addToCart, { isLoading: isAdding }] = useAddToCartMutation();
+  
   const product = data?.data || data; // Assuming it might wrap in { data: ... } or just return product
+
+  const handleAddToCart = async () => {
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    try {
+      await addToCart({ productId: product.id, quantity: 1 }).unwrap();
+      alert("Product added to cart!");
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      alert("Failed to add product to cart. Please try again.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -126,11 +145,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             )}
 
             <button 
-              disabled={product.stock === 0}
+              disabled={product.stock === 0 || isAdding}
+              onClick={handleAddToCart}
               className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-lg rounded-2xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100 shadow-xl shadow-emerald-500/20"
             >
-              <ShoppingCart className="w-5 h-5" />
-              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+              {isAdding ? (
+                <Loader2 className="w-5 h-5 animate-spin text-black" />
+              ) : (
+                <ShoppingCart className="w-5 h-5" />
+              )}
+              {product.stock === 0 ? "Out of Stock" : isAdding ? "Adding..." : "Add to Cart"}
             </button>
             
             {/* Trust Badges */}

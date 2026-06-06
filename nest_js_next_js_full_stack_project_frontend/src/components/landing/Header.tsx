@@ -1,13 +1,18 @@
 "use client";
 
 import React from "react";
-import { Shield } from "lucide-react";
+import { Shield, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
+import { useGetMyCartQuery } from "../../redux/features/cart/cartApi";
 
 export function Header() {
   const router = useRouter();
   const token = useSelector((state: any) => state.auth.token);
+  
+  const { data: cartData } = useGetMyCartQuery(undefined, { skip: !token });
+  const cart = cartData?.data || cartData;
+  const cartItemCount = cart?.cartItems?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-zinc-950/60 border-b border-zinc-900/80">
@@ -26,6 +31,20 @@ export function Header() {
           >
             Products
           </button>
+          
+          <button
+            onClick={() => router.push("/cart")}
+            className="relative p-2 text-zinc-400 hover:text-white hover:bg-zinc-905/60 rounded-full transition-all active:scale-95 group"
+            aria-label="Shopping Cart"
+          >
+            <ShoppingCart className="w-5 h-5 transition-transform group-hover:scale-105" />
+            {cartItemCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-emerald-500 text-zinc-950 font-extrabold text-[10px] w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-zinc-950">
+                {cartItemCount}
+              </span>
+            )}
+          </button>
+
           {token ? (
             <button
               onClick={() => router.push("/?view=dashboard")}
