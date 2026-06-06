@@ -10,6 +10,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { CartsModule } from './modules/carts/carts.module';
 
 @Module({
   imports: [PrismaModule, AuthModule,ConfigModule.forRoot({
@@ -20,7 +21,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
       ttl: 60000, // 1 minute
       limit: 100,
     },
-  ]), UsersModule, CategoryModule, ProductsModule, OrdersModule, PaymentsModule,],
+  ]), UsersModule, CategoryModule, ProductsModule, OrdersModule, PaymentsModule, CartsModule,],
   controllers: [AppController],
   providers: [AppService],
 })
