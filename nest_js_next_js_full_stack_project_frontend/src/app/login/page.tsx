@@ -27,15 +27,10 @@ export default function LoginPage() {
     }
   }, [token, router]);
 
-  // Fetch Lottie animation JSON from CDN dynamically
+  // Lottie fetch removed due to expired CDN link causing 403 errors.
+  // The app will now gracefully use the premium CSS fallback loader.
   useEffect(() => {
-    fetch("https://lottie.host/b0ba8c91-23ee-4ee4-bc84-9debf7bc1808/3Z5l15m8jG.json")
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw new Error("Failed to load Lottie");
-      })
-      .then((data) => setAnimationData(data))
-      .catch((err) => console.error("Lottie fetch error:", err));
+    // Future: Add valid local lottie json path here e.g., fetch('/lottie/login.json')
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
