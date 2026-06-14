@@ -1,22 +1,110 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft, Shield, MapPin, CreditCard, Lock } from "lucide-react";
+import { Loader2, ArrowLeft, MapPin, CreditCard, ShieldCheck } from "lucide-react";
 import { useGetMyCartQuery, useClearCartMutation } from "../../redux/features/cart/cartApi";
 import { useCreateOrderMutation } from "../../redux/features/order/orderApi";
+import { useCreatePaymentIntentMutation, useConfirmPaymentMutation } from "../../redux/features/payment/paymentApi";
 import { Header } from "../../components/landing/Header";
 import { Footer } from "../../components/landing/Footer";
+
+// Stripe Imports
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
+// Make sure to use your own publishable key in production!
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_TYooMQauvdEDq54NiTphI7jx");
+
+function StripeCheckoutForm({ clientSecret, orderId, onSuccess, onError }: { clientSecret: string, orderId: string, onSuccess: () => void, onError: (msg: string) => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [confirmPaymentApi] = useConfirmPaymentMutation();
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
+    
+    // 1. Confirm payment with Stripe
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      redirect: 'if_required', // Avoid redirect to handle success on this page
+    });
+
+    if (error) {
+      onError(error.message || "An error occurred with your payment.");
+      setIsProcessing(false);
+      return;
+    }
+
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+      try {
+        // 2. Notify backend of success
+        await confirmPaymentApi({
+          paymentIntentId: paymentIntent.id,
+          orderId,
+          status: 'COMPLETED',
+          message: 'Payment confirmed successfully'
+        }).unwrap();
+        
+        onSuccess();
+      } catch (err: any) {
+        console.error("Backend confirmation failed:", err);
+        onError("Payment processed, but failed to sync with our servers. Contact support.");
+        setIsProcessing(false);
+      }
+    } else {
+      onError("Payment was not completed.");
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement options={{ layout: 'tabs' }} />
+      <button 
+        disabled={isProcessing || !stripe || !elements}
+        className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-lg rounded-2xl transition-all shadow-xl hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>Processing...</span>
+          </>
+        ) : (
+          <>
+            <ShieldCheck className="w-5 h-5" />
+            <span>Pay Now</span>
+          </>
+        )}
+      </button>
+    </form>
+  );
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
   
   const { data: cartData, isLoading: isLoadingCart } = useGetMyCartQuery(undefined);
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
+  const [createPaymentIntent, { isLoading: isCreatingIntent }] = useCreatePaymentIntentMutation();
   const [clearCart] = useClearCartMutation();
 
-  const [shippingAddress, setShippingAddress] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [country, setCountry] = useState("");
+  
   const [error, setError] = useState("");
+
+  // Payment State
+  const [clientSecret, setClientSecret] = useState("");
+  const [orderId, setOrderId] = useState("");
+  const [step, setStep] = useState(1);
 
   const cart = cartData?.data || cartData;
   const cartItems = cart?.cartItems || [];
@@ -27,19 +115,21 @@ export default function CheckoutPage() {
 
   // Redirect if cart is empty
   useEffect(() => {
-    if (!isLoadingCart && cartItems.length === 0) {
+    if (!isLoadingCart && cartItems.length === 0 && step === 1) {
       router.push("/cart");
     }
-  }, [isLoadingCart, cartItems, router]);
+  }, [isLoadingCart, cartItems, router, step]);
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handleCreateOrderAndIntent = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!shippingAddress.trim()) {
-      setError("Please enter a valid shipping address.");
+    if (!addressLine.trim() || !city.trim() || !state.trim() || !zipCode.trim() || !country.trim()) {
+      setError("Please fill out all shipping fields.");
       return;
     }
+
+    const fullShippingAddress = `${addressLine.trim()}, ${city.trim()}, ${state.trim()}, ${zipCode.trim()}, ${country.trim()}`;
 
     try {
       const orderItems = cartItems.map((item: any) => ({
@@ -48,26 +138,47 @@ export default function CheckoutPage() {
         price: Number(item.product.price)
       }));
 
-      // Create Order
-      const response = await createOrder({
+      // 1. Create Order
+      const orderResponse = await createOrder({
         items: orderItems,
-        shippingAddress: shippingAddress.trim()
+        shippingAddress: fullShippingAddress
       }).unwrap();
 
-      // Because Stripe is not integrated yet, we assume the payment is COD or handled manually.
-      // Clear the cart
-      await clearCart(undefined).unwrap();
+      const createdOrderId = orderResponse.data?.id || orderResponse.id;
+      setOrderId(createdOrderId);
 
-      // Redirect to success
-      router.push("/checkout/success");
+      // 2. Create Payment Intent via Stripe
+      const intentResponse = await createPaymentIntent({
+        orderId: createdOrderId,
+        amount: subtotal,
+        currency: 'usd', // Modify if your shop uses another currency
+        description: 'Checkout Order'
+      }).unwrap();
+
+      if (intentResponse.data?.clientSecret) {
+        setClientSecret(intentResponse.data.clientSecret);
+        setStep(2); // Move to payment step
+      } else {
+        throw new Error("Invalid response from payment gateway.");
+      }
       
     } catch (err: any) {
-      console.error("Order creation failed:", err);
-      setError(err?.data?.message || "Failed to place order. Please try again.");
+      console.error("Initialization failed:", err);
+      setError(err?.data?.message || err?.message || "Failed to initialize payment. Please try again.");
     }
   };
 
-  if (isLoadingCart || cartItems.length === 0) {
+  const handlePaymentSuccess = async () => {
+    // Clear cart and redirect
+    try {
+      await clearCart(undefined).unwrap();
+    } catch(e) {
+      console.error("Cart clear error:", e);
+    }
+    router.push("/checkout/success");
+  };
+
+  if (isLoadingCart || (cartItems.length === 0 && step === 1)) {
     return (
       <div className="min-h-screen flex flex-col bg-zinc-950 text-white">
         <Header />
@@ -84,51 +195,148 @@ export default function CheckoutPage() {
       <Header />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-12 z-10 relative">
-        <button 
-          onClick={() => router.back()}
-          className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-emerald-400 transition-colors w-fit font-medium text-sm"
-        >
-          <ArrowLeft className="w-4 h-4" /> Return to Cart
-        </button>
+        {step === 1 ? (
+          <button 
+            onClick={() => router.back()}
+            className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-emerald-400 transition-colors w-fit font-medium text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" /> Return to Cart
+          </button>
+        ) : (
+          <button 
+            onClick={() => setStep(1)}
+            className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-emerald-400 transition-colors w-fit font-medium text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Shipping
+          </button>
+        )}
 
-        <div className="mb-10">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
+        <div className="mb-10 flex items-center gap-4">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white">
             Secure <span className="text-emerald-400">Checkout</span>
           </h1>
-          <p className="text-zinc-400">Complete your order securely.</p>
+          <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1 rounded-full text-xs font-semibold border border-zinc-800">
+            <span className={step === 1 ? "text-emerald-400" : "text-zinc-500"}>1. Shipping</span>
+            <span className="text-zinc-600">→</span>
+            <span className={step === 2 ? "text-emerald-400" : "text-zinc-500"}>2. Payment</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Left Column: Form */}
+          {/* Left Column: Form Steps */}
           <div className="lg:col-span-2">
-            <form onSubmit={handlePlaceOrder} className="space-y-8">
-              
-              {/* Shipping Section */}
-              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl p-8 backdrop-blur">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                    <MapPin className="w-5 h-5 text-emerald-400" />
+            
+            {step === 1 && (
+              <form onSubmit={handleCreateOrderAndIntent} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl p-8 backdrop-blur">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                      <MapPin className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Shipping Details</h2>
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Shipping Details</h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                        Address Line
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={addressLine}
+                        onChange={(e) => setAddressLine(e.target.value)}
+                        placeholder="123 Example Street, Apt 4B"
+                        className="w-full px-4 py-3 bg-zinc-950/50 border border-zinc-800 focus:border-emerald-500 rounded-2xl focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-zinc-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                        City
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="City Name"
+                        className="w-full px-4 py-3 bg-zinc-950/50 border border-zinc-800 focus:border-emerald-500 rounded-2xl focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-zinc-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                        State / Province
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        placeholder="State"
+                        className="w-full px-4 py-3 bg-zinc-950/50 border border-zinc-800 focus:border-emerald-500 rounded-2xl focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-zinc-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                        Zip Code
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={zipCode}
+                        onChange={(e) => setZipCode(e.target.value)}
+                        placeholder="10001"
+                        className="w-full px-4 py-3 bg-zinc-950/50 border border-zinc-800 focus:border-emerald-500 rounded-2xl focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-zinc-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                        Country
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        placeholder="United States"
+                        className="w-full px-4 py-3 bg-zinc-950/50 border border-zinc-800 focus:border-emerald-500 rounded-2xl focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-zinc-600"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
-                    Full Shipping Address
-                  </label>
-                  <textarea
-                    required
-                    value={shippingAddress}
-                    onChange={(e) => setShippingAddress(e.target.value)}
-                    placeholder="123 Example Street, Apt 4B, City, Country, Zip Code"
-                    rows={4}
-                    className="w-full px-4 py-3 bg-zinc-950/50 border border-zinc-800 focus:border-emerald-500 rounded-2xl focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-zinc-600 resize-none"
-                  />
-                </div>
-              </div>
+                {error && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-medium">
+                    {error}
+                  </div>
+                )}
 
-              {/* Payment Section (Mock) */}
-              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl p-8 backdrop-blur relative overflow-hidden">
+                <button 
+                  type="submit"
+                  disabled={isCreatingOrder || isCreatingIntent}
+                  className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-lg rounded-2xl transition-all shadow-xl hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {isCreatingOrder || isCreatingIntent ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Initializing Payment...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Continue to Payment</span>
+                      <ArrowLeft className="w-5 h-5 rotate-180" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {step === 2 && clientSecret && (
+              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl p-8 backdrop-blur animate-in fade-in slide-in-from-right-8 duration-500">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                     <CreditCard className="w-5 h-5 text-emerald-400" />
@@ -136,41 +344,35 @@ export default function CheckoutPage() {
                   <h2 className="text-2xl font-bold text-white">Payment Method</h2>
                 </div>
 
-                <div className="p-4 border border-emerald-500/30 bg-emerald-500/5 rounded-2xl flex items-start gap-4">
-                  <Lock className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="text-white font-bold mb-1">Cash on Delivery / Manual Payment</h3>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      Credit card processing via Stripe is currently in development mode. Your order will be placed as pending, and payment will be collected securely upon delivery or via a manual invoice link.
-                    </p>
+                {error && (
+                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-medium">
+                    {error}
                   </div>
+                )}
+
+                <div className="p-6 bg-zinc-950 rounded-2xl border border-zinc-800/50">
+                  <Elements stripe={stripePromise} options={{ 
+                      clientSecret, 
+                      appearance: { 
+                        theme: 'night', 
+                        variables: { 
+                          colorPrimary: '#10b981', // emerald-500
+                          colorBackground: '#09090b', // zinc-950
+                          colorText: '#ffffff',
+                          colorDanger: '#ef4444'
+                        } 
+                      } 
+                    }}>
+                    <StripeCheckoutForm 
+                      clientSecret={clientSecret} 
+                      orderId={orderId} 
+                      onSuccess={handlePaymentSuccess} 
+                      onError={setError} 
+                    />
+                  </Elements>
                 </div>
               </div>
-
-              {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-medium">
-                  {error}
-                </div>
-              )}
-
-              <button 
-                type="submit"
-                disabled={isCreatingOrder}
-                className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-lg rounded-2xl transition-all shadow-xl hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
-              >
-                {isCreatingOrder ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Processing Order...</span>
-                  </>
-                ) : (
-                  <>
-                    <Shield className="w-5 h-5" />
-                    <span>Place Order Securely</span>
-                  </>
-                )}
-              </button>
-            </form>
+            )}
           </div>
 
           {/* Right Column: Order Summary */}
@@ -181,7 +383,7 @@ export default function CheckoutPage() {
               <div className="space-y-4 mb-6 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                 {cartItems.map((item: any) => (
                   <div key={item.id} className="flex gap-4">
-                    <div className="w-16 h-16 bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0">
+                    <div className="w-16 h-16 bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-800">
                       {item.product.imageUrl && (
                         <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
                       )}
