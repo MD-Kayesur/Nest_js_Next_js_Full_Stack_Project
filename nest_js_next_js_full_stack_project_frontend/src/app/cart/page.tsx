@@ -187,10 +187,10 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                <button className="w-full flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-2xl transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98]">
+                <Link href="/checkout" className="w-full flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-2xl transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98]">
                   <span>Proceed to Checkout</span>
                   <ArrowRight className="w-5 h-5" />
-                </button>
+                </Link>
                 
                 <div className="mt-4 text-center">
                   <Link href="/products" className="text-sm font-semibold text-zinc-500 hover:text-white transition-colors">
