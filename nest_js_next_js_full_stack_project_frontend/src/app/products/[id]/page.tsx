@@ -29,10 +29,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     }
     try {
       await addToCart({ productId: product.id, quantity: 1 }).unwrap();
-      alert("Product added to cart!");
+      // Added seamlessly, no alert
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert("Failed to add product to cart. Please try again.");
+      // Optional: A non-blocking toast could be added here in the future
     }
   };
 
