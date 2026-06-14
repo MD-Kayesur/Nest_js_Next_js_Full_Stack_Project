@@ -14,6 +14,7 @@ import { Architecture } from "../components/landing/Architecture";
 import { Faq } from "../components/landing/Faq";
 import { Cta } from "../components/landing/Cta";
 import { Footer } from "../components/landing/Footer";
+import { BentoGrid } from "../components/landing/BentoGrid";
 
 import { UserDashboard } from "../components/dashboard/UserDashboard";
 import { AdminDashboard } from "../components/dashboard/AdminDashboard";
@@ -97,6 +98,7 @@ function GuestView() {
 
       <Header />
       <Hero />
+      <BentoGrid />
       <Features />
       <Architecture />
       <Faq />

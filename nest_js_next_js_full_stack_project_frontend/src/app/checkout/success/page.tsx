@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CheckCircle2, Package, ArrowRight } from "lucide-react";
 import { Header } from "../../../components/landing/Header";
 import { Footer } from "../../../components/landing/Footer";
+import { ParticleBurst } from "../../../components/animations/ParticleBurst";
 
 export default function CheckoutSuccessPage() {
   return (
@@ -12,8 +13,8 @@ export default function CheckoutSuccessPage() {
       <Header />
 
       <main className="flex-1 flex flex-col items-center justify-center max-w-4xl w-full mx-auto px-6 py-20 z-10 relative text-center">
-        {/* Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+        {/* Ambient Glow / Particle Animation */}
+        <ParticleBurst />
 
         <div className="relative z-10 bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-xl p-10 md:p-16 rounded-[3rem] shadow-2xl flex flex-col items-center w-full max-w-2xl">
           <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30 mb-8">

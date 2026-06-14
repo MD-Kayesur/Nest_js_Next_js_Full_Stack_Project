@@ -3,12 +3,19 @@
 import React from "react";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ParticleBurst } from "../animations/ParticleBurst";
 
 export function Hero() {
   const router = useRouter();
   return (
-    <section className="relative z-10 max-w-5xl mx-auto text-center px-6 pt-24 pb-20 flex flex-col items-center">
-      <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-zinc-800 bg-zinc-900/40 text-zinc-400 text-xs mb-8 hover:border-zinc-700 transition-colors">
+    <section className="relative w-full overflow-hidden">
+      {/* Hero Background Animation */}
+      <div className="absolute inset-0 z-0 h-[800px]">
+        <ParticleBurst />
+      </div>
+
+      <div className="relative z-10 max-w-5xl mx-auto text-center px-6 pt-24 pb-32 flex flex-col items-center">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md text-zinc-400 text-xs mb-8 hover:border-zinc-700 transition-colors shadow-2xl">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
         Full-Stack Integration Ready
       </div>
@@ -33,6 +40,7 @@ export function Hero() {
         >
           Access Console
         </button>
+      </div>
       </div>
     </section>
   );
