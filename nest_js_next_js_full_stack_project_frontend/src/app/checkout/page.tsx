@@ -11,7 +11,7 @@ import { Footer } from "../../components/landing/Footer";
 
 // Stripe Imports
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 // Make sure to use your own publishable key in production!
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_TYooMQauvdEDq54NiTphI7jx");
@@ -20,18 +20,26 @@ function StripeCheckoutForm({ clientSecret, orderId, onSuccess, onError }: { cli
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCardComplete, setIsCardComplete] = useState(false);
   const [confirmPaymentApi] = useConfirmPaymentMutation();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !isCardComplete) return;
 
     setIsProcessing(true);
     
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+        setIsProcessing(false);
+        return;
+    }
+
     // 1. Confirm payment with Stripe
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      redirect: 'if_required', // Avoid redirect to handle success on this page
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: cardElement,
+      }
     });
 
     if (error) {
@@ -64,10 +72,24 @@ function StripeCheckoutForm({ clientSecret, orderId, onSuccess, onError }: { cli
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement options={{ layout: 'tabs' }} />
+      <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+        <CardElement 
+          onChange={(e) => setIsCardComplete(e.complete)}
+          options={{ 
+            style: { 
+              base: { 
+                color: '#fff', 
+                fontSize: '16px', 
+                '::placeholder': { color: '#aab7c4' } 
+              },
+              invalid: { color: '#ef4444' }
+            } 
+          }} 
+        />
+      </div>
       <button 
-        disabled={isProcessing || !stripe || !elements}
-        className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-lg rounded-2xl transition-all shadow-xl hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+        disabled={isProcessing || !stripe || !elements || !isCardComplete}
+        className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-lg rounded-2xl transition-all shadow-xl hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:bg-emerald-800 disabled:text-emerald-300"
       >
         {isProcessing ? (
           <>
@@ -351,18 +373,7 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="p-6 bg-zinc-950 rounded-2xl border border-zinc-800/50">
-                  <Elements stripe={stripePromise} options={{ 
-                      clientSecret, 
-                      appearance: { 
-                        theme: 'night', 
-                        variables: { 
-                          colorPrimary: '#10b981', // emerald-500
-                          colorBackground: '#09090b', // zinc-950
-                          colorText: '#ffffff',
-                          colorDanger: '#ef4444'
-                        } 
-                      } 
-                    }}>
+                  <Elements stripe={stripePromise}>
                     <StripeCheckoutForm 
                       clientSecret={clientSecret} 
                       orderId={orderId} 

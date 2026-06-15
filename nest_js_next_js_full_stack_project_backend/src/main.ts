@@ -25,7 +25,7 @@ app.useGlobalPipes(
 
 //enable CORS
 app.enableCors({
-  origin:process.env.FRONTEND_URL|| "*"||'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', process.env.FRONTEND_URL || ''],
   methods:['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders:['Content-Type','Authorization','accept'],
   credentials:true,
@@ -91,7 +91,7 @@ SwaggerModule.setup('api/v1/docs',app,document,{
 
 
 
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
 }
 bootstrap().catch(error => {
 	Logger.error("Failed to start server:",error);
