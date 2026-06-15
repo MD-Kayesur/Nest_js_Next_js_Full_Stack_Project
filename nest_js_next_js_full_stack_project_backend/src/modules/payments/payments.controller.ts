@@ -37,6 +37,18 @@ export class PaymentsController {
         return await this.paymentsService.createPayment();
     }
 
+    @Post('create-cod')
+    @ApiOperation({ summary: 'Create COD payment', description: 'create cash on delivery payment', })
+    @ApiCreatedResponse({ 
+        type: PaymentApiResponseDto, 
+        description: 'COD payment created successfully', })
+    @ApiBadRequestResponse({
+        description: 'invalid data or order not found'
+    })
+    async createCodPayment(@Body() createPaymentIntentApiDto: CreatePaymentIntentDto, @GetUser('id') userId: string) {
+        return await this.paymentsService.createCodPayment(createPaymentIntentApiDto, userId);
+    }
+
     @Post('confirm')
     @ApiOperation({ summary: 'Confirm payment (STRIPE)', description: 'confirm payment', })
     @ApiCreatedResponse({ 

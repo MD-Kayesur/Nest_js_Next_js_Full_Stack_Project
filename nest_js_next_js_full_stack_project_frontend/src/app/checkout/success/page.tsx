@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Package, ArrowRight } from "lucide-react";
 import { Header } from "../../../components/landing/Header";
@@ -8,6 +9,9 @@ import { Footer } from "../../../components/landing/Footer";
 import { ParticleBurst } from "../../../components/animations/ParticleBurst";
 
 export default function CheckoutSuccessPage() {
+  const searchParams = useSearchParams();
+  const paymentType = searchParams.get("type");
+
   return (
     <div className="min-h-screen flex flex-col bg-zinc-950 text-white selection:bg-zinc-800 scroll-smooth">
       <Header />
@@ -33,9 +37,15 @@ export default function CheckoutSuccessPage() {
             <Package className="w-6 h-6 text-zinc-500 flex-shrink-0" />
             <div>
               <h3 className="text-white font-bold mb-1">What happens next?</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                You will be contacted regarding your manual payment/cash on delivery. You can track your order status from your dashboard.
-              </p>
+              {paymentType === 'cod' ? (
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  You will be contacted regarding your manual payment/cash on delivery. You can track your order status from your dashboard.
+                </p>
+              ) : (
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  Your secure credit card payment was processed successfully. You will receive an email confirmation shortly, and you can track your order from your dashboard.
+                </p>
+              )}
             </div>
           </div>
 

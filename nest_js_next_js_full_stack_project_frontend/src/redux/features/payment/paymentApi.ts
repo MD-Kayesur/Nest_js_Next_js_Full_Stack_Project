@@ -17,10 +17,19 @@ export const paymentApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Cart", "Orders"],
     }),
+    createCodPayment: builder.mutation({
+      query: (data) => ({
+        url: "payments/create-cod",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Cart", "Orders"],
+    }),
   }),
 });
 
 export const {
   useCreatePaymentIntentMutation,
   useConfirmPaymentMutation,
+  useCreateCodPaymentMutation,
 } = paymentApi;

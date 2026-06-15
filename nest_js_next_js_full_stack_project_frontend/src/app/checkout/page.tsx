@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, MapPin, CreditCard, ShieldCheck } from "lucide-react";
 import { useGetMyCartQuery, useClearCartMutation } from "../../redux/features/cart/cartApi";
 import { useCreateOrderMutation } from "../../redux/features/order/orderApi";
-import { useCreatePaymentIntentMutation, useConfirmPaymentMutation } from "../../redux/features/payment/paymentApi";
+import { useCreatePaymentIntentMutation, useConfirmPaymentMutation, useCreateCodPaymentMutation } from "../../redux/features/payment/paymentApi";
 import { Header } from "../../components/landing/Header";
 import { Footer } from "../../components/landing/Footer";
 
@@ -113,6 +113,7 @@ export default function CheckoutPage() {
   const { data: cartData, isLoading: isLoadingCart } = useGetMyCartQuery(undefined);
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
   const [createPaymentIntent, { isLoading: isCreatingIntent }] = useCreatePaymentIntentMutation();
+  const [createCodPayment, { isLoading: isCreatingCod }] = useCreateCodPaymentMutation();
   const [clearCart] = useClearCartMutation();
 
   const [addressLine, setAddressLine] = useState("");
@@ -127,6 +128,7 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState("");
   const [step, setStep] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cod'>('stripe');
 
   const cart = cartData?.data || cartData;
   const cartItems = cart?.cartItems || [];
@@ -197,7 +199,23 @@ export default function CheckoutPage() {
     } catch(e) {
       console.error("Cart clear error:", e);
     }
-    router.push("/checkout/success");
+    router.push("/checkout/success?type=stripe");
+  };
+
+  const handleCodSubmit = async () => {
+    setError("");
+    try {
+      await createCodPayment({ orderId, amount: subtotal, currency: 'usd', description: 'Cash on Delivery' }).unwrap();
+      try {
+        await clearCart(undefined).unwrap();
+      } catch(e) {
+        console.error("Cart clear error:", e);
+      }
+      router.push("/checkout/success?type=cod");
+    } catch(err: any) {
+      console.error("COD submission failed:", err);
+      setError("Failed to place COD order. Please try again.");
+    }
   };
 
   if (isLoadingCart || (cartItems.length === 0 && step === 1)) {
@@ -366,6 +384,19 @@ export default function CheckoutPage() {
                   <h2 className="text-2xl font-bold text-white">Payment Method</h2>
                 </div>
 
+                <div className="flex gap-4 mb-6">
+                   <button 
+                     onClick={() => setPaymentMethod('stripe')}
+                     className={`flex-1 py-3 px-4 rounded-xl font-bold border transition-all ${paymentMethod === 'stripe' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'}`}>
+                     Pay with Card
+                   </button>
+                   <button 
+                     onClick={() => setPaymentMethod('cod')}
+                     className={`flex-1 py-3 px-4 rounded-xl font-bold border transition-all ${paymentMethod === 'cod' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'}`}>
+                     Cash on Delivery
+                   </button>
+                </div>
+
                 {error && (
                   <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-medium">
                     {error}
@@ -373,14 +404,31 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="p-6 bg-zinc-950 rounded-2xl border border-zinc-800/50">
-                  <Elements stripe={stripePromise}>
-                    <StripeCheckoutForm 
-                      clientSecret={clientSecret} 
-                      orderId={orderId} 
-                      onSuccess={handlePaymentSuccess} 
-                      onError={setError} 
-                    />
-                  </Elements>
+                  {paymentMethod === 'stripe' ? (
+                    <Elements stripe={stripePromise}>
+                      <StripeCheckoutForm 
+                        clientSecret={clientSecret} 
+                        orderId={orderId} 
+                        onSuccess={handlePaymentSuccess} 
+                        onError={setError} 
+                      />
+                    </Elements>
+                  ) : (
+                    <div className="space-y-6">
+                       <p className="text-zinc-400">You will pay in cash when your order is delivered to your address. Please ensure you have the exact amount ready.</p>
+                       <button 
+                          onClick={handleCodSubmit}
+                          disabled={isCreatingCod}
+                          className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-lg rounded-2xl transition-all shadow-xl hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                          {isCreatingCod ? (
+                            <><Loader2 className="w-5 h-5 animate-spin" /><span>Processing...</span></>
+                          ) : (
+                            <><ShieldCheck className="w-5 h-5" /><span>Place Order (COD)</span></>
+                          )}
+                        </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

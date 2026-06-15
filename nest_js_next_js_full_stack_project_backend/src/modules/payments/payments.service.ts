@@ -24,6 +24,77 @@ export class PaymentsService {
         return { success: true, message: 'Create payment stub' };
     }
 
+    // create COD payment
+    async createCodPayment(createPaymentIntentDto: CreatePaymentIntentDto, userId: string): Promise<{ success: boolean, data: paymentresponseDto, message?: string }> {
+        const { orderId, amount, currency, description } = createPaymentIntentDto;
+        
+        const order = await this.prisma.order.findFirst({ where: { id: orderId, userId }});
+        if (!order) throw new NotFoundException(`order with ID ${orderId} not found`);
+
+        const existingPayment = await this.prisma.payment.findFirst({ where: { orderId }});
+        
+        if (existingPayment && existingPayment.status === PaymentStatus.COMPLETED) {
+            throw new BadRequestException(`Order already has a completed payment record`);
+        }
+
+        let paymentToReturn;
+
+        const [payment] = await this.prisma.$transaction(async (tx) => {
+            if (existingPayment) {
+                paymentToReturn = await tx.payment.update({
+                    where: { id: existingPayment.id },
+                    data: {
+                        paymentMethod: 'COD',
+                        status: PaymentStatus.PENDING,
+                        description: description || 'Cash on Delivery',
+                    }
+                });
+            } else {
+                paymentToReturn = await tx.payment.create({
+                    data: {
+                        orderId,
+                        userId,
+                        amount: new Prisma.Decimal(amount),
+                        currency: currency || 'USD',
+                        description: description || 'Cash on Delivery',
+                        status: PaymentStatus.PENDING,
+                        paymentMethod: 'COD',
+                    }
+                });
+            }
+
+            await tx.order.update({
+                where: { id: orderId },
+                data: { status: 'PROCESSING' as any }
+            });
+
+            if (order.cartId) {
+                await tx.cart.update({
+                    where: { id: order.cartId },
+                    data: { checkedOut: true }
+                });
+            } else {
+                const activeCart = await tx.cart.findFirst({
+                    where: { userId, checkedOut: false }
+                });
+                if (activeCart) {
+                    await tx.cart.update({
+                        where: { id: activeCart.id },
+                        data: { checkedOut: true }
+                    });
+                }
+            }
+
+            return [paymentToReturn];
+        });
+
+        return {
+            success: true,
+            data: this.mapTopaymentresponseDto(payment),
+            message: 'COD payment recorded successfully',
+        };
+    }
+
     // create payment intent
     async createPaymentIntent(createPaymentIntentDto: CreatePaymentIntentDto, userId: string): Promise<{ success: boolean, data: { clientSecret: string, paymentId: string }, message?: string }> {
         try {
