@@ -9,6 +9,7 @@ import { useGetMyCartQuery } from "../../redux/features/cart/cartApi";
 export function Header() {
   const router = useRouter();
   const token = useSelector((state: any) => state.auth.token);
+  const user = useSelector((state: any) => state.auth.user);
   
   const { data: cartData } = useGetMyCartQuery(undefined, { skip: !token });
   const cart = cartData?.data || cartData;

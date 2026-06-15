@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Type } from "class-transformer"
-import { IsOptional } from "class-validator"
+import { IsNumber, IsOptional, IsString } from "class-validator"
 
 export enum OrderStatus {
     PENDING = 'PENDING',
@@ -16,6 +16,7 @@ export class QueryOrderDto {
     example: 1,
  })
  @IsOptional()
+ @IsNumber()
  @Type(()=>Number)
  page?:number=1
 
@@ -27,6 +28,7 @@ export class QueryOrderDto {
     example: 10,
  })
  @IsOptional()
+ @IsNumber()
  @Type(()=>Number)
  limit?:number=10
 
@@ -36,8 +38,8 @@ export class QueryOrderDto {
     example: 'pending',
  })
  @IsOptional()
+ @IsString()
  @Type(()=>String)
- 
  status?:string
 
 
@@ -46,6 +48,7 @@ export class QueryOrderDto {
     example: '1',
 })
 @IsOptional()
+@IsString()
 @Type(()=>String)
 search?:string
 
@@ -56,6 +59,9 @@ search?:string
     description: 'User ID',
     example: '1',
  })
+ @IsOptional()
+ @IsString()
+ @Type(()=>String)
  userId?:string
  
    

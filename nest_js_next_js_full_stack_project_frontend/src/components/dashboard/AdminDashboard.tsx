@@ -19,6 +19,7 @@ import {
 } from "../../redux/features/user/userApi";
 import { ProductManagement } from "./ProductManagement";
 import { CategoryManagement } from "./CategoryManagement";
+import { OrderManagement } from "./OrderManagement";
 
 interface DashboardProps {
   currentUser: any;
@@ -30,7 +31,7 @@ export function AdminDashboard({ currentUser, onSignOut }: DashboardProps) {
   const { data: users, isLoading: isLoadingUsers, refetch } = useGetAllUsersQuery(undefined);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserByIdMutation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "products" | "categories">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "products" | "categories" | "orders">("users");
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this user profile?")) {
@@ -117,6 +118,17 @@ export function AdminDashboard({ currentUser, onSignOut }: DashboardProps) {
           >
             <Tags className="w-4 h-4" />
             Category Management
+          </button>
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "orders"
+                ? "bg-zinc-100 text-zinc-900"
+                : "bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800"
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            Order Management
           </button>
         </div>
 
@@ -215,6 +227,8 @@ export function AdminDashboard({ currentUser, onSignOut }: DashboardProps) {
         </div>
         ) : activeTab === "products" ? (
           <ProductManagement />
+        ) : activeTab === "orders" ? (
+          <OrderManagement />
         ) : (
           <CategoryManagement />
         )}

@@ -12,10 +12,25 @@ export const orderApi = baseApi.injectEndpoints({
     }),
     getMyOrders: builder.query({
       query: (params) => {
-        const queryParams = new URLSearchParams(params).toString();
-        return `orders/my-orders?${queryParams}`;
+        const queryParams = params ? new URLSearchParams(params).toString() : '';
+        return queryParams ? `orders/my-orders?${queryParams}` : `orders/my-orders`;
       },
       providesTags: ["Orders"],
+    }),
+    getAllOrders: builder.query({
+      query: (params) => {
+        const queryParams = params ? new URLSearchParams(params).toString() : '';
+        return queryParams ? `orders/admin/all-orders?${queryParams}` : `orders/admin/all-orders`;
+      },
+      providesTags: ["Orders"],
+    }),
+    updateOrderStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `orders/admin/${id}`,
+        method: "PATCH",
+        body: { status },
+      }),
+      invalidatesTags: ["Orders"],
     }),
   }),
 });
@@ -23,4 +38,6 @@ export const orderApi = baseApi.injectEndpoints({
 export const {
   useCreateOrderMutation,
   useGetMyOrdersQuery,
+  useGetAllOrdersQuery,
+  useUpdateOrderStatusMutation,
 } = orderApi;
