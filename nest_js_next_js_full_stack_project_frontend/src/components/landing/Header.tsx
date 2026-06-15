@@ -58,7 +58,7 @@ export function Header() {
               <button
                 onClick={() => router.push("/login")}
                 className="px-4 py-2 text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
-              >
+              >feat: 
                 Sign In
               </button>
               <button
